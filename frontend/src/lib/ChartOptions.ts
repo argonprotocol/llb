@@ -24,7 +24,7 @@ export function createChartOptions(chartPoints: any[], pointRadius: number[], on
         {
           data: chartPoints,
           borderColor: '#63298E',
-          borderWidth: 4,
+          borderWidth: 3,
           pointBorderColor: 'white',
           pointBorderWidth: 1,
           pointBackgroundColor: '#63298E',

@@ -2,21 +2,21 @@
   <div ref="componentElement" class="Base Component relative pt-2 -mt-2 h-full flex flex-col overflow-hidden">
     <div class="h-full flex flex-col relative" @mousedown="startDrag">
       
-      <div class="absolute w-full h-full flex flex-col pointer-events-none z-[600]">
+      <!-- <div class="absolute w-full h-full flex flex-col pointer-events-none z-[600]">
         <p ChartCallout class="CalloutText absolute top-6 left-7 w-5/12 pr-40 z-20">
           Liquid Locking allows bitcoin holders to lock their assets into yield bearing Argon Vaults. The more bitcoins locked in vaults the larger the wall of shorts stabilizing the argon. 
           <span class="text-blue-500 underline decoration-dashed cursor-pointer">Learn more</span>.
         </p>
-      </div>
+      </div> -->
       
       <div @click="clickTest" class="grow relative">
-        <div :style="`width: ${sliderLeft}px;`" class="absolute left-0 top-0 bottom-[47px] bg-[#E6EAF3] z-[500] opacity-50"></div>
+        <ChartOpaque :style="`width: ${sliderLeft-10}px;`" class="absolute left-[10px] top-0 bottom-[47px] z-[500]" />
         <div SelectedLine :style="`left: ${sliderLeft}px;`" :class="{ isActive: nibsActive.left }" class="Left absolute -top-1 bottom-3 bg-white w-2 border-2 border-slate-800/40 rounded-full z-[500] cursor-col-resize">
           <TriangleNib @click="toggleNib('left', $event)" class="absolute left-1/2 bottom-0 w-6 h-6 ml-[0.5px] -translate-x-1/2 translate-y-1/2 cursor-grab" />
           <TriangleNibBasic class="Selected absolute left-1/2 bottom-0 w-4 h-4 ml-[0.5px] -translate-x-1/2 translate-y-1/2 pointer-events-none" />
         </div>
 
-        <div :style="`left: ${sliderRight}px`" class="absolute right-0 top-0 bottom-[47px] bg-[#E6EAF3] z-[500] opacity-50"></div>
+        <div :style="`left: ${sliderRight}px`" class="absolute right-0 top-0 bottom-[47px] bg-[#E6EAF3] z-[500] opacity-70"></div>
         <div SelectedLine :style="`left: ${sliderRight}px`" :class="{ isActive: nibsActive.right }" class="Right absolute -top-1 bottom-3 bg-white w-2 border-2 border-slate-800/40 rounded-full shadow-xl z-[500] cursor-col-resize">
           <TriangleNib @click="toggleNib('right', $event)" class="absolute left-1/2 bottom-0 w-6 ml-[0.5px] h-6 -translate-x-1/2 translate-y-1/2 cursor-grab" />
           <TriangleNibBasic class="Selected absolute left-1/2 bottom-0 w-4 h-4 ml-[0.5px] -translate-x-1/2 translate-y-1/2 pointer-events-none" />
@@ -24,7 +24,7 @@
 
         <ChartBg />
         <Chart @dragging="onDragging" ref="chartRef">
-          <template v-for="ratchet of ratchets" :key="ratchet.date">
+          <!-- <template v-for="ratchet of ratchets" :key="ratchet.date">
             <div v-if="ratchet.profitIncreasePct" :style="`left: ${ratchet.left}px; top: ${ratchet.profitTop}px; height: ${ratchet.profitHeight}px`" class="absolute -mt-3 font-bold text-slate-400">
               <span class="text-green-600/70 relative z-30 text-sm">{{ formatShorthandNumber(ratchet.profitIncreasePct) }}%</span>
               <div VerticalLine class="absolute left-1/2 top-5 bottom-0 bg-slate-400/30 w-[1px]"></div>
@@ -33,7 +33,7 @@
               <LockIcon Icon class="w-3 h-3 relative z-30" />
               <div VerticalLine class="absolute left-1/2 top-5 bottom-0 bg-slate-400/30 w-[1px]"></div>
             </div>
-          </template>
+          </template> -->
         </Chart>
       </div>
     
@@ -45,20 +45,20 @@
 import * as Vue from 'vue';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { useBasicStore } from '../stores/basic';
+import { useBasicStore } from '../store';
 import Chart from '../components/Chart.vue';
 import ChartBg from '../components/ChartBg.vue';
 import LockIcon from '../assets/lock.svg';
 import TriangleNib from '../assets/triangle-nib.svg';
 import TriangleNibBasic from '../assets/triangle-nib-basic.svg';
+import ChartOpaque from '../components/ChartOpaque.vue';
 import { storeToRefs } from 'pinia';
 import { addCommas, calculateProfit, formatShorthandNumber } from '../lib/BasicUtils';
 
 dayjs.extend(utc);
 
 const basicStore = useBasicStore();
-const { getSimulationData, switchToPanel } = basicStore;
-const { sliderIndexes, sliderDates, traderReturns } = storeToRefs(basicStore);
+const { bitcoinPrices, sliderIndexes, sliderDates, traderReturns } = storeToRefs(basicStore);
 
 const chartRef = Vue.ref<typeof Chart | null>(null);
 
@@ -181,21 +181,16 @@ function updateSliders() {
 
 function loadData() {
   const allItems: any[] = [];
-  const bitcoinPrices = getSimulationData('bitcoinPrices');
-  const vaultingRatchets = getSimulationData('vaultingRatchets');
+  const vaultingRatchets: any[] = []; // getSimulationData('vaultingRatchets') || [];
   const vaultingRatchetsByDate: any = {};
-
-  if (!bitcoinPrices || !vaultingRatchets) {
-    switchToPanel('runner');
-  }
   
   for (const ratchet of vaultingRatchets.values()) {
     vaultingRatchetsByDate[ratchet.date] = ratchet;
   }
 
-  for (const [index, item] of bitcoinPrices.entries()) {
+  for (const [index, item] of bitcoinPrices.value.entries()) {
     item.showPointOnChart = index === 0;
-    item.previous = bitcoinPrices[index - 1];
+    item.previous = bitcoinPrices.value[index - 1];
     if (vaultingRatchetsByDate[item.date]) {
       item.ratchet = vaultingRatchetsByDate[item.date];
       vaultingRatchetsByDate[item.date].itemIndex = index;
@@ -238,44 +233,44 @@ function loadData() {
     const profitTop = pointPos.y - (pointPos.y * .4) - 100;
     const iconTop = pointPos.y - (pointPos.y * .1) - 100;;
     
-    const newRatchet = { 
-      ...ratchet, 
-      left: pointPos.x, 
-      profitTop: profitTop,
-      profitHeight: pointPos.y - profitTop,
-      iconTop: iconTop,
-      iconHeight: pointPos.y - iconTop,
-      profitIncreasePct: profitIncreasePct,
-      priceChangePct: priceChangePct,
-      isDownRatchet: !isUpRatchet,
-    };
+    // const newRatchet = { 
+    //   ...ratchet, 
+    //   left: pointPos.x, 
+    //   profitTop: profitTop,
+    //   profitHeight: pointPos.y - profitTop,
+    //   iconTop: iconTop,
+    //   iconHeight: pointPos.y - iconTop,
+    //   profitIncreasePct: profitIncreasePct,
+    //   priceChangePct: priceChangePct,
+    //   isDownRatchet: !isUpRatchet,
+    // };
 
-    // Adjust the top if there are ratchets within 10 units
-    if (isUpRatchet) {
-      const ratchetsToCheck = ratchets.value.slice(ratchets.value.length - 20);
-      const profitIncreasePcts = ratchetsToCheck.map(r => r.profitIncreasePct);
-      const minValue = Math.min(...profitIncreasePcts);
-      const maxValue = Math.max(...profitIncreasePcts);
-      const pctMove = (newRatchet.profitIncreasePct - minValue) / (maxValue - minValue);
-      for (const existingRatchet of ratchetsToCheck) {
-        if (Math.abs(existingRatchet.left - newRatchet.left) < 5) {
-          newRatchet.profitTop -= (adjustUpward ? adjustAmount : -adjustAmount) * pctMove;
-          newRatchet.profitHeight += (adjustUpward ? adjustAmount : -adjustAmount) * pctMove;
-        }
-      }
-    } else {
-      for (let i = ratchets.value.length - 1; i >= Math.max(0, ratchets.value.length - 20); i--) {
-        const existingRatchet = ratchets.value[i];
-        if (existingRatchet.priceChangePct > 0) continue;
-        if (Math.abs(existingRatchet.left - newRatchet.left) < 8) {
-          newRatchet.iconTop -= adjustUpward ? adjustAmount : -adjustAmount;
-          newRatchet.iconHeight += adjustUpward ? adjustAmount : -adjustAmount;
-        }
-      }
-    }
+    // // Adjust the top if there are ratchets within 10 units
+    // if (isUpRatchet) {
+    //   const ratchetsToCheck = ratchets.value.slice(ratchets.value.length - 20);
+    //   const profitIncreasePcts = ratchetsToCheck.map(r => r.profitIncreasePct);
+    //   const minValue = Math.min(...profitIncreasePcts);
+    //   const maxValue = Math.max(...profitIncreasePcts);
+    //   const pctMove = (newRatchet.profitIncreasePct - minValue) / (maxValue - minValue);
+    //   for (const existingRatchet of ratchetsToCheck) {
+    //     if (Math.abs(existingRatchet.left - newRatchet.left) < 5) {
+    //       newRatchet.profitTop -= (adjustUpward ? adjustAmount : -adjustAmount) * pctMove;
+    //       newRatchet.profitHeight += (adjustUpward ? adjustAmount : -adjustAmount) * pctMove;
+    //     }
+    //   }
+    // } else {
+    //   for (let i = ratchets.value.length - 1; i >= Math.max(0, ratchets.value.length - 20); i--) {
+    //     const existingRatchet = ratchets.value[i];
+    //     if (existingRatchet.priceChangePct > 0) continue;
+    //     if (Math.abs(existingRatchet.left - newRatchet.left) < 8) {
+    //       newRatchet.iconTop -= adjustUpward ? adjustAmount : -adjustAmount;
+    //       newRatchet.iconHeight += adjustUpward ? adjustAmount : -adjustAmount;
+    //     }
+    //   }
+    // }
 
-    adjustUpward = !adjustUpward;
-    ratchets.value.push(newRatchet);
+    // adjustUpward = !adjustUpward;
+    // ratchets.value.push(newRatchet);
   }
 }
 
@@ -378,18 +373,18 @@ Vue.onUnmounted(() => {
         position: absolute;
         top: 0;
         bottom: 0;
-        left: 1px;
-        right: 1px;
-        background: #63298E;
+        left: 1.5px;
+        right: 1.5px;
+        background: #cc88ff;
       }
     }
 
     &.Left {
-      box-shadow: -10px 1px 12px 0px rgba(0, 0, 0, .1);
+      box-shadow: -1px 0 4px 0px rgba(0, 0, 0, .1);
     }
 
     &.Right {
-      box-shadow: 10px 1px 12px 0px rgba(0, 0, 0, .1);
+      box-shadow: 1px 0 4px 0px rgba(0, 0, 0, .1);
     }
   }
 

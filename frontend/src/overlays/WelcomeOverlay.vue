@@ -36,7 +36,7 @@
 import * as Vue from 'vue'
 import { storeToRefs } from 'pinia';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { useBasicStore } from '../stores/basic';
+import { useBasicStore } from '../store';
 
 const basicStore = useBasicStore();
 const { tourStep } = storeToRefs(basicStore);
