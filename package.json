@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc && vite build",
+    "-build": "vue-tsc -b && vite build",
+    "predeploy": "bun run build",
+    "deploy": "gh-pages -d dist --cname bvm.argonprotocol.org",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -29,6 +29,7 @@ Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryS
 
 const props = defineProps<{ 
   isRunning?: boolean,
+  disableTooltip?: boolean,
 }>();
 
 const totalDays = dayjs('2025-12-31').diff(dayjs('2020-10-01'), 'day');
@@ -76,8 +77,7 @@ function setDateRange(min: string, max: string) {
 function addPoints(items: { date: string, price: number, showPointOnChart: boolean }[]) {
   const lastIndex = chartPoints.length - 1;
   if (lastIndex > 0) {
-    console.log('LAST INDEX', lastIndex, chartPoints[lastIndex]);
-    // pointRadius[lastIndex] = chartPoints[lastIndex].showPointOnChart ? 4 : 0;
+    pointRadius[lastIndex] = chartPoints[lastIndex].showPointOnChart ? 4 : 0;
   }
   
   for (const item of items) {
@@ -170,7 +170,7 @@ function getNextMonthIndex(index: number) {
 function onTooltipFn(tooltip: TooltipModel<any>, closeIfItemMatchesThis?: any) {
   if (tooltipOpened.value) return;
   // Hide if no tooltip
-  if (tooltip.opacity === 0 || !tooltip.dataPoints) {
+  if (tooltip.opacity === 0 || !tooltip.dataPoints || props.disableTooltip) {
     tooltipConfig.value.opacity = 0;
     return;
   }
@@ -197,11 +197,13 @@ function onTooltipFn(tooltip: TooltipModel<any>, closeIfItemMatchesThis?: any) {
   tooltipConfig.value.top = tooltip.caretY;
 }
 
-function getItemFromEvent(event: MouseEvent) {
+function getItemIndexFromEvent(event: MouseEvent, override: { x?: number, y?: number } = {}) {
   if (!chartRef.value) return;
 
   const rect = chartRef.value.getBoundingClientRect();
   const maxY = rect.height - rect.top;
+  const eventX = override.x || event.x;
+  const eventY = override.y || event.y;
 
   const wrappedEvent = { 
     chart: chart,
@@ -209,32 +211,11 @@ function getItemFromEvent(event: MouseEvent) {
     offsetX: undefined,
     offsetY: undefined,
     type: event.type,
-    x: event.x,
-    y: Math.min(event.y, maxY),
+    x: eventX,
+    y: Math.min(eventY, maxY),
   };
   const interactionItems = chart?.getElementsAtEventForMode(wrappedEvent as any, 'index', { intersect: false }, true) || [];
-
-  console.log('interactionItems', wrappedEvent.x, wrappedEvent.y, interactionItems[0]?.index);
-
-    // const endX = Math.max(20, event.x as number);
-  // const endInteractionItem = interactionItems[0];
-  // const endIndex = endInteractionItem.index;
-  // const leftToRight = endX > startX;
-
-  // const left = {
-  //   x: leftToRight ? startInteractionItem?.element.x || 0 : endInteractionItem?.element.x,
-  //   y: leftToRight ? startInteractionItem?.element.y || 0 : endInteractionItem?.element.y,
-  //   index: leftToRight ? startIndex : endIndex,
-  //   item: leftToRight ? pointItems[startIndex] : pointItems[endIndex],
-  // };
-  // const right = {
-  //   x: leftToRight ? endInteractionItem?.element.x || 0 : startInteractionItem?.element.x || 0,
-  //   y: leftToRight ? endInteractionItem?.element.y || 0 : startInteractionItem?.element.y || 0,
-  //   index: leftToRight ? endIndex : startIndex,
-  //   item: leftToRight ? pointItems[endIndex] : pointItems[startIndex],
-  // }
-
-  // return pointItems[interactionItems[0].index];
+  return interactionItems[0]?.index;
 }
 
 function startPulsing() {
@@ -261,7 +242,7 @@ Vue.onBeforeUnmount(() => {
 defineExpose({ 
   getPrevMonthIndex,
   getNextMonthIndex,
-  getItemFromEvent, 
+  getItemIndexFromEvent, 
   getItemCount,
   addPoints, reloadData, startPulsing, stopPulsing, clearPoints, getItems, getItem, toggleDatasetVisibility, setDateRange, getPointPosition });
 </script>

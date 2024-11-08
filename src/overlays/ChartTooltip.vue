@@ -39,7 +39,7 @@
 import * as Vue from 'vue';
 import dayjs from 'dayjs';
 import dayjsUtc from 'dayjs/plugin/utc';
-import { addCommas, formatShorthandNumber, formatPrice, formatChangePct } from '../lib/BasicUtils';
+import { addCommas, formatPrice, formatChangePct } from '../lib/BasicUtils';
 
 dayjs.extend(dayjsUtc);
 
@@ -56,8 +56,8 @@ const boxConfig = Vue.ref({ translateX: 50 });
 const priceDiff = Vue.ref(0);
 
 function updateBoxPosition() {
-  const arrowRect = arrowRef.value?.getBoundingClientRect() || { left: 0};
-  const boxRect = boxRef.value?.getBoundingClientRect() || { left: 0};
+  const arrowRect = arrowRef.value?.getBoundingClientRect() || { left: 0} as DOMRect;
+  const boxRect = boxRef.value?.getBoundingClientRect() || { left: 0} as DOMRect;
   const boxWidth = boxRect.width || 0;
   const halfBoxWidth = boxWidth / 2;
   const arrowLeft = arrowRect.left + (arrowRect.width / 2);

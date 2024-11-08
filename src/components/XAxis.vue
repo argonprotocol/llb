@@ -1,5 +1,5 @@
 <template>
-  <div class="X-AXIS COMPONENT text-sm text-slate-400 border-t border-slate-300 mx-1">
+  <div class="X-AXIS COMPONENT text-sm text-slate-400 border-t border-slate-300 mx-1 select-none">
     <ul Dates class="flex flex-row justify-around pt-0.5 text-center whitespace-nowrap h-7 mb-1">
       <li v-if="unitType === 'year'" class="border-slate-300" :style="`min-width: ${unitWidth * 2.5}%`">&nbsp; 2010 &nbsp;</li>
       <li v-for="length in lengths" :key="length" class="border-l border-slate-300" :style="`width: ${lengthWidth}%`">{{ length }}</li>
@@ -31,6 +31,10 @@ const lengthWidth = unitType === 'year' ? unitWidth * 4 : unitWidth;
 
 <style lang="scss">
 .X-AXIS.COMPONENT {
+  li::selection      { 
+    color: rgb(148 163 184);
+    background: white;
+  }
   ul[Dates] li:first-child {
     border-left: none;
   }

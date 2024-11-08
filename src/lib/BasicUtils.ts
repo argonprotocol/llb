@@ -6,7 +6,7 @@ export const US_CPI_AT_START = 292.7;
 export const AVERAGE_INFLATION = 3.8 / 100;
 export const CURRENT_INFLATION = 4.99 / 100;
 
-export function calculateIndexInRange(number, rangeStart, rangeEnd) {
+export function calculateIndexInRange(number: number, rangeStart: number, rangeEnd: number) {
   return ((number - rangeStart) / (rangeEnd - rangeStart));
 }
 
@@ -25,18 +25,18 @@ export interface IPromisable<T = any> {
   reject: (error: Error) => void;
 }
 
-export function calculatePrice(capital, currency) {
+export function calculatePrice(capital: number, currency: number) {
   return capital / currency;
 }
-export function calculateDiscreteReturn(startingPrice, currentPrice): number {
+export function calculateDiscreteReturn(startingPrice: number, currentPrice: number): number {
   return ((currentPrice - startingPrice) / startingPrice);
 }
 
-export function calculateAnnualizedReturn(discreteReturn, daysRan): number {
+export function calculateAnnualizedReturn(discreteReturn: number, daysRan: number): number {
   return discreteReturn * (365 / daysRan);
 }
 
-export function calculateCompoundedReturn(discreteReturn, days) {
+export function calculateCompoundedReturn(discreteReturn: number, days: number): number {
   const periodsPerYear = 365 / days;
   const periodicRate = 1 + discreteReturn;
   return Math.pow(periodicRate, periodsPerYear) - 1;
@@ -71,9 +71,9 @@ function countDecimals(num: number | string) {
 export function formatPrice(price: number, decimals?: number) {
   if (!price) return '0.00';
   if (price < 0.10 && price.toFixed(3).charAt(4) !== '0') {
-    return price.toFixed(decimals || 3);
+    return price.toFixed(decimals ?? 3);
   } else  {
-    return price.toFixed(decimals || 2);
+    return price.toFixed(decimals ?? 2);
   }
 }
 

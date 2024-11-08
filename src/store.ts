@@ -2,38 +2,60 @@ import * as Vue from 'vue';
 import { defineStore } from 'pinia'
 import baseRules, { IRules } from './lib/RulesConfig';
 import API from './lib/API';
+import BtcFees from './lib/BtcFees';
+import BtcPrices from './lib/BtcPrices';
 
 export type IPanelName =  'runner' | 'base';
 
+export interface IVaultStats {
+  ratchetCount: number;
+  shortCount: number;
+  liquidCash: number;
+  vaulterProfit: number;
+  hodlerProfit: number;
+}
+
 export const useBasicStore = defineStore('help', () => {
-  const bitcoinPrices: Vue.Ref<any> = Vue.ref(null);
-  const bitcoinFeesPerTransaction: Vue.Ref<any> = Vue.ref(null);
+  const btcPrices = new BtcPrices();
+  const btcFees = new BtcFees(btcPrices);
   const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
   
   const rules: Vue.Ref<IRules> = Vue.ref({ ...baseRules });
 
-  const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: 3_698, right: 4_283 });
+  const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: 3_698, right: 4_282 });
   const sliderDates: Vue.Ref<{ left: string, right: string }> = Vue.ref({ left: '2010-08-17', right: '2024-08-26' });
-  const traderReturns: Vue.Ref<{ hodler: number, vaulter: number }> = Vue.ref({ hodler: 0, vaulter: 0 });
+
+  const vaultStats: Vue.Ref<IVaultStats> = Vue.ref({
+    ratchetCount: 0,
+    shortCount: 0,
+    liquidCash: 0,
+    vaulterProfit: 0,
+    hodlerProfit: 0,
+  });
+
+  function updateVaultStats(data: IVaultStats) {
+    vaultStats.value = data;
+  }
 
   async function loadData() {
     const [a, b] = await Promise.all([
       API.fetchSimulationData('bitcoinPrices'),
       API.fetchSimulationData('bitcoinFeesPerTransaction')
     ]);
-    bitcoinPrices.value = a;
-    bitcoinFeesPerTransaction.value = b;
+    btcPrices.load(a);
+    btcFees.load(b);
     isLoaded.value = true;
   }
 
   return { 
     isLoaded, 
-    bitcoinPrices, 
-    bitcoinFeesPerTransaction, 
+    btcPrices, 
+    btcFees, 
     rules, 
     sliderIndexes, 
     sliderDates,
-    traderReturns, 
+    vaultStats,
     loadData, 
+    updateVaultStats,
   }
 });
