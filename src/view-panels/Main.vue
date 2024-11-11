@@ -49,14 +49,14 @@
           <div v-else v-for="short of shorts" :key="short.date">
             <div PriceDrop v-if="short.date === 'EXIT'" class="border-b border-slate-400/40 py-1">
               Argon collapses to ${{ short.lowestPrice }} right before you pull your bitcoin
-              <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1 w-6 h-6 border border-slate-400/80 rounded text-center text-fuchsia-700 hover:bg-white/50 cursor-pointer">
-                <span class="relative -top-[1px]">-</span>
+              <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
+                <TrashIcon class="w-4 h-4" />
               </div>
             </div>
             <div PriceDrop v-else-if="short.date.isAfter(sliderDates.left) && short.date.isBefore(sliderDates.right)" class="border-b border-slate-400/40 py-1">
               On {{ dayjs(short.date).format('MMMM D, YYYY') }} Argon drops from $1.00 to ${{ short.lowestPrice }}
-              <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1 w-6 h-6 border border-slate-400/80 rounded text-center text-fuchsia-700 hover:bg-white/50 cursor-pointer">
-                <span class="relative -top-[1px]">-</span>
+              <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
+                <TrashIcon class="w-4 h-4" />
               </div>
             </div>
           </div>
@@ -118,6 +118,7 @@ import emitter from '../emitters/basic';
 import NibSlider from '../components/NibSlider.vue';
 import ChartMarker from '../overlays/ChartMarker.vue';
 import { Popover, PopoverButton } from '@headlessui/vue'
+import { TrashIcon } from '@heroicons/vue/24/outline';
 import ActionsList from '../overlays/ActionsList.vue';
 import ConfirmShortRemoval from '../overlays/ConfirmShortRemoval.vue';
 import AddShort from '../overlays/AddShort.vue';
