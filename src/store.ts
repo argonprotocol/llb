@@ -19,7 +19,9 @@ export const useBasicStore = defineStore('help', () => {
   const btcPrices = new BtcPrices();
   const btcFees = new BtcFees(btcPrices);
   const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
-  
+
+  const ratchetPct = Vue.ref(10);
+
   const rules: Vue.Ref<IRules> = Vue.ref({ ...baseRules });
 
   const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: 3_698, right: 4_282 });
@@ -55,6 +57,7 @@ export const useBasicStore = defineStore('help', () => {
     sliderIndexes, 
     sliderDates,
     vaultStats,
+    ratchetPct,
     loadData, 
     updateVaultStats,
   }

@@ -1,9 +1,9 @@
 <template>
   <ChartOpaque :style="chartOpaqueStyle" class="absolute top-0 bottom-[47px] z-[500]" />
-  <div SelectedLine @mousedown="emitMousedown" :style="`left: ${posLeft}px; top: ${posTopPct}%`" :class="lineClasses" class="absolute bottom-3 z-[500] cursor-col-resize">
+  <div SelectedLine @mousedown="emitMousedown" @touchstart="emitTouchstart" :style="`left: ${posLeft}px; top: ${posTopPct}%`" :class="lineClasses" class="absolute bottom-3 z-[500] cursor-col-resize">
     <div class="Selected"></div>
     <div NibWrapper class="absolute left-1/2 bottom-0.5 ml-[1.5px] w-[26.5px] h-6 -translate-x-1/2 translate-y-1/2">
-      <TriangleNib @click="toggle" class="absolute left-0 bottom-0 w-[24.5px] h-6 cursor-grab" />
+      <TriangleNib class="absolute left-0 bottom-0 w-[24.5px] h-6 cursor-grab" />
       <TriangleNibBasic class="Selected absolute left-[2.5px] bottom-1 w-[18px] h-4 pointer-events-none" />
     </div>
   </div>
@@ -22,8 +22,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'toggle', event: MouseEvent): void
   (e: 'mousedown', event: MouseEvent): void
+  (e: 'touchstart', event: TouchEvent): void
 }>();
 
 const posLeft = Vue.computed(() => props.pos);
@@ -58,12 +58,12 @@ const chartOpaqueStyle = Vue.computed(() => {
   }
 });
 
-function toggle(event: MouseEvent) {
-  emit('toggle', event);
-}
-
 function emitMousedown(event: MouseEvent) {
   emit('mousedown', event);
+}
+
+function emitTouchstart(event: TouchEvent) {
+  emit('touchstart', event);
 }
 </script>
 

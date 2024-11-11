@@ -1,18 +1,18 @@
 <template>
-  <TransitionRoot as="template" :show="open">
-    <Dialog class="relative z-[2000]">
+  <TransitionRoot as="template" :show="isOpen">
+    <Dialog class="relative z-[2000]" @close="isOpen = false">
       <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
       </TransitionChild>
 
       <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:px-4 sm:py-10">
           <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-            <DialogPanel class="absolute top-[12.5%] transform flex flex-col overflow-scroll rounded-lg bg-white px-5 pb-4 pt-5 text-left shadow-xl transition-all w-full max-w-4xl">
+            <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white px-5 pb-4 pt-5 text-left shadow-xl transition-all w-full max-w-4xl">
               <div class="grow">
                 <DialogTitle as="h3" class="text-xl font-semibold leading-6 text-gray-900 whitespace-nowrap px-3">Bitcoin is the Key to Argon's Stabilization</DialogTitle>
 
-                <div class="mt-3 text-left sm:mt-5 border-y border-gray-200 py-4 text-sm text-gray-500 space-y-3 px-3">
+                <div class="mt-3 text-left sm:mt-5 border-y border-gray-200 py-4 text-base text-gray-500 space-y-3 px-3">
                   <p>
                     The tool you are using touches on one of the most novel aspects of Argon: it's relationship to Bitcoin. Bitcoin is the key to Argon stabilization 
                     mechanisms, and in return, Argon delivers lucrative benefits to Bitcoin holders. Bitcons are both given the right to mint Argons when market
@@ -51,16 +51,15 @@ import * as Vue from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import emitter from '../emitters/basic';
 
-const open = Vue.ref(false);
+const isOpen = Vue.ref(false);
 const nextButtonRef = Vue.ref<HTMLElement | null>(null);
 
 function close() {
-  open.value = false;
+  isOpen.value = false;
 }
 
 emitter.on('openTheKeyOverlay', () => {
-  console.log('RECEIVED openTheKeyOverlay');
-  open.value = true;
+  isOpen.value = true;
   Vue.nextTick(() => {
     nextButtonRef.value?.focus();
   });

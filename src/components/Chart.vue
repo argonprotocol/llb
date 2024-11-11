@@ -43,6 +43,7 @@ let chart: Chart | null = null;
 const chartPoints: any[] = [];
 const pointRadius: number[] = [];
 const pointItems: any[] = [];
+const pointItemsByDate: Record<string, any> = {};
 
 const tooltipConfig = Vue.ref({
   opacity: 0,
@@ -87,6 +88,7 @@ function addPoints(items: { date: string, price: number, showPointOnChart: boole
     chartPoints.push({ x: date.valueOf(), y: price });
     pointRadius.push(item.showPointOnChart ? 4 : 0);
     pointItems.push(item);
+    pointItemsByDate[item.date] = item;
   }
   
   pointRadius[pointRadius.length - 1] = 4;
@@ -151,6 +153,31 @@ function getItemCount() {
   return pointItems.length;
 }
 
+function getItemIndexFromDate(date: string) {
+  return pointItemsByDate[date] ? pointItems.indexOf(pointItemsByDate[date]) : -1;
+}
+
+function getItemIndexFromEvent(event: MouseEvent, override: { x?: number, y?: number } = {}) {
+  if (!chartRef.value) return;
+
+  const rect = chartRef.value.getBoundingClientRect();
+  const maxY = rect.height - rect.top;
+  const eventX = override.x || event.x;
+  const eventY = override.y || event.y;
+
+  const wrappedEvent = { 
+    chart: chart,
+    native: event,
+    offsetX: undefined,
+    offsetY: undefined,
+    type: event.type,
+    x: eventX,
+    y: Math.min(eventY, maxY),
+  };
+  const interactionItems = chart?.getElementsAtEventForMode(wrappedEvent as any, 'index', { intersect: false }, true) || [];
+  return interactionItems[0]?.index;
+}
+
 function getPrevMonthIndex(index: number) {
   const currentDate = dayjs.utc(pointItems[index].date);
   const dayOfMonth = currentDate.date();
@@ -197,27 +224,6 @@ function onTooltipFn(tooltip: TooltipModel<any>, closeIfItemMatchesThis?: any) {
   tooltipConfig.value.top = tooltip.caretY;
 }
 
-function getItemIndexFromEvent(event: MouseEvent, override: { x?: number, y?: number } = {}) {
-  if (!chartRef.value) return;
-
-  const rect = chartRef.value.getBoundingClientRect();
-  const maxY = rect.height - rect.top;
-  const eventX = override.x || event.x;
-  const eventY = override.y || event.y;
-
-  const wrappedEvent = { 
-    chart: chart,
-    native: event,
-    offsetX: undefined,
-    offsetY: undefined,
-    type: event.type,
-    x: eventX,
-    y: Math.min(eventY, maxY),
-  };
-  const interactionItems = chart?.getElementsAtEventForMode(wrappedEvent as any, 'index', { intersect: false }, true) || [];
-  return interactionItems[0]?.index;
-}
-
 function startPulsing() {
   markerPos.value.show = true;
 }
@@ -242,9 +248,12 @@ Vue.onBeforeUnmount(() => {
 defineExpose({ 
   getPrevMonthIndex,
   getNextMonthIndex,
+  getItems,
+  getItem,
   getItemIndexFromEvent, 
   getItemCount,
-  addPoints, reloadData, startPulsing, stopPulsing, clearPoints, getItems, getItem, toggleDatasetVisibility, setDateRange, getPointPosition });
+  getItemIndexFromDate,
+  addPoints, reloadData, startPulsing, stopPulsing, clearPoints, toggleDatasetVisibility, setDateRange, getPointPosition });
 </script>
 
 <style lang="scss" scoped>

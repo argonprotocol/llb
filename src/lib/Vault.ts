@@ -1,3 +1,4 @@
+import { Dayjs } from 'dayjs';
 import IBitcoinPriceRecord from '../interfaces/IBitcoinPriceRecord';
 import BtcFees from './BtcFees';
 import BtcPrices from "./BtcPrices";
@@ -17,13 +18,11 @@ export interface IAction {
 }
 
 export interface IShort {
-  date: string;
+  date: Dayjs | 'EXIT';
   lowestPrice: number;
 }
 
 const VAULT_SECURITY_PCT = 0;
-const MIN_RATCHET_CHANGE_PCT = 0.1;
-const MIN_RATCHET_CHANGE_ABS = 0.1;
 
 export default class Vault {
   public actions: IAction[] = [];
@@ -50,7 +49,7 @@ export default class Vault {
 
     this.shorts = shorts;
     this.shortsByDate = shorts.reduce((acc, short) => {
-      acc[short.date] = short;
+      acc[short.date === 'EXIT' ? 'EXIT' : short.date.format('YYYY-MM-DD')] = short;
       return acc;
     }, {} as Record<string, IShort>);
 
@@ -151,7 +150,12 @@ export default class Vault {
       // unlock bitcoin at the end
       const endingPrice = this.prices[this.prices.length - 1].price;
       const lastAction = this.actions[this.actions.length - 1];
-      const costOfArgonBurn =  Math.min(endingPrice, lastAction.price);
+      
+      let costOfArgonBurn =  Math.min(endingPrice, lastAction.price);
+
+      if (this.shortsByDate.EXIT) {
+        costOfArgonBurn = Vault.calculateUnlockPriceInDollars(endingPrice, this.shortsByDate.EXIT.lowestPrice);
+      }
 
       const securityFee = endingPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = this.btcFees.getByDate(this.endingDate);
