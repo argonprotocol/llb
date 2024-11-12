@@ -95,7 +95,6 @@ function checkRightBoxPosition(left: number, boxRect: DOMRect) {
       }
     }
   } else if (boxRect.right < window.innerWidth - 20) {
-    console.log('RESET');
     boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: false };
   } 
 }

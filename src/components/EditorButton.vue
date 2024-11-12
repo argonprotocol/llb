@@ -5,10 +5,6 @@
       {{ props.label || localModel }}
     </div>
 
-    <div v-else-if="props.type === 'dollar'" EditButton type="dollar" @click="openOverlay()" class="inline-block">
-      {{ props.label || `$${localModel}` }}
-    </div>
-
     <div v-else-if="props.type === 'percent'" EditButton type="percent" @click="openOverlay()" class="inline-block">
       {{ props.label || `${localModel}%` }}
     </div>
@@ -36,7 +32,7 @@ dayjs.extend(utc);
 
 const props = defineProps<{
   id: string;
-  type: 'number' | 'date' | 'dollar' | 'percent';
+  type: 'number' | 'date' | 'percent';
   modelValue: string | number | Dayjs;
   label?: string;
 }>();

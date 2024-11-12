@@ -22,7 +22,7 @@
         </div>
 
         <div v-else-if="id === 'cashUnlocked'" class="space-y-2">
-          <p>Every time a bitcoin is locked into the vault (or ratcheted), argons equal to the value of the bitcoin is allowed to be minted and sold into the market. This keeps the price of Argon from rising above its target value, and in doing so, it allows bitcoin holders to create cash liquidity.</p>
+          <p>Every time a bitcoin is locked in a vault (or ratcheted), argons equal to the market value of the bitcoin are allowed to be minted by that bitcoin's owner and sold into the open market. This keeps the price of Argon from rising above its target value, and in doing so, it allows bitcoin holders to create cash liquidity.</p>
         </div>
 
         <div v-else-if="id === 'vaulterReturns'" class="space-y-2">
