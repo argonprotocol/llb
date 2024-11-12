@@ -25,7 +25,7 @@ export function showInsight(event: MouseEvent, data: any = {}) {
     if (!grandparentElem) return;
     const grandparentRect = grandparentElem.getBoundingClientRect();
     x = grandparentRect.left;
-    width = grandparentRect.width;
+    width = grandparentRect.width + 3;
     arrowX = (targetRect.left - grandparentRect.left) + (targetRect.width / 2);
 
   } else if (alignAttr === 'right' || positionAttr === 'right') {

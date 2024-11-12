@@ -10,7 +10,7 @@
       <div v-if="isLoaded" class="absolute left-[55%] top-0 min-w-[83%] z-[1000] -translate-x-1/2 ">
         <div class="relative text-slate-500 whitespace-nowrap z-10 h-[56px] px-3 flex items-center justify-center uppercase">
           <div class="absolute -left-4 -right-4 -bottom-4 h-16 z-1" style="background: linear-gradient(to bottom, #E6EAF3 30%, rgba(248, 250, 255, 0));"></div>
-          <span class="relative z-10 top-1">YOUR VAULTING OUTCOME FROM {{ dayjs.utc(sliderDates.left).format('MMMM D, YYYY') }} TO {{ dayjs.utc(sliderDates.right).format('MMMM D, YYYY') }}</span>
+          <span class="relative z-10 top-1">VAULTING RESULTS FROM {{ dayjs.utc(sliderDates.left).format('MMMM D, YYYY') }} TO {{ dayjs.utc(sliderDates.right).format('MMMM D, YYYY') }}</span>
           <div class="absolute left-2 bottom-0 h-[1px] z-1 bg-slate-400/20" style="width: calc(80% - 16px)"></div>
           <div class="absolute right-2 bottom-0 h-[1px] z-1 bg-slate-400/20" style="width: calc(20% - 16px)"></div>
         </div>
@@ -19,19 +19,19 @@
             <div class="absolute left-0 -top-12 right-0 bottom-0 -z-1 bg-[#F8FAFF] rounded border-[1px] border-slate-800/20 shadow"></div>
             <div class="flex flex-col items-center justify-center min-w-[20%] py-2 px-10" insightId="ratchets" @mouseenter="showInsight" @mouseleave="hideInsight">
               <div class="text-xl font-bold">{{ addCommas(vaultStats.ratchetCount) }}</div>
-              <div class="text-slate-500/70 whitespace-nowrap">Ratchets</div>
+              <div class="text-slate-500/70 whitespace-nowrap">Ratchet{{ vaultStats.ratchetCount === 1 ? '' : 's' }}</div>
             </div>
             <div class="relative flex flex-col items-center justify-center min-w-[20%] py-2 px-10" insightId="shorts" @mouseenter="showInsight" @mouseleave="hideInsight">
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">+</div>
               <div class="text-xl font-bold">{{ addCommas(vaultStats.shortCount) }}</div>
-              <div class="text-slate-500/70 whitespace-nowrap">Shorts</div>
+              <div class="text-slate-500/70 whitespace-nowrap">Short Cover{{ vaultStats.shortCount === 1 ? '' : 's' }}</div>
             </div>
             <div class="relative flex flex-col items-center justify-center min-w-[30%] py-2 px-1" insightId="cashUnlocked" @mouseenter="showInsight" @mouseleave="hideInsight">
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">=</div>
               <div class="text-xl font-bold">${{ formatShorthandNumber(vaultStats.cashUnlocked) }}</div>
-              <div class="text-slate-500/70 whitespace-nowrap">Cash Unlocked</div>
+              <div class="text-slate-500/70 whitespace-nowrap">Accrued Cash</div>
             </div>
-            <div class="relative flex flex-col items-center justify-center min-w-[30%] py-2 px-1" insightId="vaulterReturns" @mouseenter="showInsight" @mouseleave="hideInsight">
+            <div class="relative flex flex-col items-center justify-center min-w-[30%] py-2 px-1" insightId="vaulterReturns" align="grandparent" @mouseenter="showInsight" @mouseleave="hideInsight">
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">=</div>
               <div :class="{ 'text-green-700': vaultStats.vaulterProfit > 0, 'text-red-600': vaultStats.vaulterProfit < 0 }" class="text-xl font-bold">{{ addCommas(formatChangePct(vaultStats.vaulterProfit)) }}%</div>
               <div class="text-slate-500/70 whitespace-nowrap">Vaulter Return</div>
@@ -39,7 +39,7 @@
           </div>
           <div class="flex flex-col relative min-w-[20%]">
             <div class="absolute left-0 -top-12 right-0 bottom-0 -z-1 bg-[#F8FAFF] rounded border-[1px] border-slate-800/20 shadow"></div>
-            <div class="relative flex flex-col items-center justify-center py-2 my-1" insightId="hodlerReturns" align="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+            <div class="relative flex flex-col items-center justify-center py-2 my-1" insightId="hodlerReturns" align="grandparent" @mouseenter="showInsight" @mouseleave="hideInsight">
               <div class="absolute left-[-1px] top-3 font-bold -translate-x-1/2 bg-[#F8FAFF] border-[1px] border-slate-600/20 px-2 -py-2 rounded">vs</div>
               <div :class="{ 'text-green-700': vaultStats.hodlerProfit > 0, 'text-red-600': vaultStats.hodlerProfit < 0 }" class="text-xl font-bold text-center w-full">{{ addCommas(formatChangePct(vaultStats.hodlerProfit)) }}%</div>
               <div class="text-slate-500/70 whitespace-nowrap text-center w-full">Hodler Return</div>
@@ -87,9 +87,10 @@ import InformationSolid from '@/assets/information-solid.svg';
 import emitter from '../emitters/basic';
 import Download from '../lib/Download';
 import * as InsightOverlay from '../lib/InsightUtils';
+import Vault from '../lib/Vault';
 
 const basicStore = useBasicStore();
-const { vaultStats, sliderDates, isLoaded, vault } = storeToRefs(basicStore);
+const { vaultStats, bitcoinCount, sliderDates, isLoaded, vault } = storeToRefs(basicStore);
 
 const scoreboardRef = Vue.ref<HTMLElement | null>(null);
 
@@ -105,7 +106,33 @@ function showInsight(event: MouseEvent) {
   const targetElem = event.currentTarget as HTMLElement;
   if (!targetElem) return;
 
-  InsightOverlay.showInsight(event);
+  const id = targetElem.getAttribute('insightId') || '';
+  const data: any = {};
+
+  if (['vaulterReturns', 'hodlerReturns'].includes(id)) {
+    const activeVault = vault.value as Vault;
+    data.bitcoinCount = bitcoinCount.value;
+    data.startingDate = sliderDates.value.left;
+    data.endingDate = sliderDates.value.right;
+    data.startingBtcValue = activeVault.startingPrice * bitcoinCount.value;
+    data.endingBtcValue = activeVault.endingPrice * bitcoinCount.value;
+    data.totalExpenses = activeVault.totalExpenses || 0;
+    data.totalAccruedValue = activeVault.totalAccruedValue || 0;
+    data.vaulterProfit = activeVault.vaulterProfit || 0;
+    data.hodlerExpenses = activeVault.hodlerExpenses || 0;
+    data.hodlerProfit = activeVault.hodlerProfit || 0;
+    data.totalHodlerValue = activeVault.totalHodlerValue || 0;
+    data.profitFromShorts = activeVault.profitFromShorts || 0;
+    data.profitFromInitialLock = activeVault.profitFromInitialLock || 0;
+
+    data.profitFromRatchets = activeVault.totalAccruedValue - (
+      activeVault.profitFromInitialLock +
+      activeVault.profitFromShorts + 
+      (activeVault.endingPrice * bitcoinCount.value)
+    );
+  }
+
+  InsightOverlay.showInsight(event, data);
 }
 
 function hideInsight(event: MouseEvent) {

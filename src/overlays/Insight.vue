@@ -14,11 +14,11 @@
       <div class="py-3 text-left text-sm text-slate-500 font-light">
         
         <div v-if="id === 'ratchets'" class="space-y-2">
-          <p>Ratchets are a combination-action whereby the bitcoin is unlocked from the vault and then immediately relocked at the new market price. This reset of the Lock Price creates a continually readjusting hedge against any downward drop in Bitcoin price.</p>
+          <p>Ratcheting is the process of unlocking your bitcoin from the vault and then immediately relocking at the current market price. This reset of the Lock Price readjusts your hedge against any downward drop in Bitcoin price. The ability to continually do this as Bitcoin's price rises and falls creates a powerful profit mechanism.</p>
         </div>
 
         <div v-else-if="id === 'shorts'" class="space-y-2">
-          <p>Wherever the price of Argon drops below its target price, vaulted bitcoins are given an exclusive right to cover the short. This burns excess argons from circulation and helps to drive Argon's price back up to target. And of course, the bitcoins profit.</p>
+          <p>Vaults provide a currency arbitrage opportunity because all locked Bitcoins are naturally short the Argon. When Argon's price drops below target, vaulted bitcoins can cover their shorts and earn a profit by unlocking from the vault with below-market Argons. As part of this unlocking process, bitcoins burn a huge quantity of Argons out of circulation, thereby restoring supply and demand equilibrium and returning Argon to its target price.</p>
         </div>
 
         <div v-else-if="id === 'cashUnlocked'" class="space-y-2">
@@ -26,14 +26,83 @@
         </div>
 
         <div v-else-if="id === 'vaulterReturns'" class="space-y-2">
-          <p>As you'll discover from trying various combinations, the yeild from vaulting is substantially higher than straight up hodling. This is due to the novel way Argon's vaulting mechanisms hedge against the volatility of Bitcoin while still allowing for full upside.</p>
+          <p class="pb-2">Vaulting provides substantially higher returns than straight up hodling because of two things: they hedge against Bitcoin's downside volatility and they provide additional profit opportunities, such as ratcheting and shorting. The following table breaks down these returns:</p>
+
+          <table class="w-full">
+            <tr class="border-b border-t border-slate-400/30 h-[30px] italic">
+              <td>Starting Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} on {{ dayjs.utc(data.startingDate).format('MMM D, YYYY') }}</td>
+              <td class="text-right">${{addCommas(formatPrice(data.startingBtcValue))}}</td>
+            </tr>
+            <tr class="border-b-2 border-slate-400/60 h-[30px] italic">
+              <td>Ending Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} <span v-if="data.bitcoinCount > 1">(you own {{ data.bitcoinCount }})</span> on {{ dayjs.utc(data.endingDate).format('MMM D, YYYY') }}</td>
+              <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue))}}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px]">
+              <td>Profits Accrued From Initial Lock</td>
+              <td class="text-right">${{addCommas(formatPrice(data.profitFromInitialLock))}}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px]">
+              <td>Profits Accrued From Ratcheting</td>
+              <td class="text-right">${{addCommas(formatPrice(data.profitFromRatchets))}}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px]">
+              <td>Profits Accrued From Short Covers</td>
+              <td class="text-right">${{addCommas(formatPrice(data.profitFromShorts))}}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px]">
+              <td>Profits Accrued from Bitcoin Appreciation</td>
+              <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue - data.startingBtcValue))}}</td>
+            </tr>
+            <tr class="border-b-2 border-slate-400/60 h-[30px]">
+              <td>Bitcoin Transaction Fees and Related Expenses</td>
+              <td class="text-right">-${{ addCommas(formatPrice(data.totalExpenses)) }}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px] font-bold">
+              <td>Final Value of Your Investment (Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} + Cash - Expenses)</td>
+              <td class="text-right">${{addCommas(formatPrice(data.totalAccruedValue))}}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px] font-bold">
+              <td>Total Vaulter Profit</td>
+              <td class="text-right">{{addCommas(formatPrice(data.vaulterProfit * 100))}}%</td>
+            </tr>
+          </table>
+          
+          <p class="pt-2">It's important to note that this model does NOT use compounding returns. All profits are taken off the table as cash and are left to sit for the duration of the simulation.</p>
         </div>
 
         <div v-else-if="id === 'hodlerReturns'" class="space-y-2">
-          <p>
-            Hodling has been a tremendous investment strategy over the past decade, and it will likely continue for many years to come.
-            <template v-if="data.hodlerProfit < 0">However, as with all volatile assets, there have been stretches of time where bitcoin has experienced extreme downside.</template>
+          <p class="pb-2">
+            Hodling has been a tremendous investment strategy over the past decade, however, as with all volatile assets, there have been stretches of time where bitcoin has experienced extreme downside. 
+            As such, hodling returns cannot compete with those who use Argon's Liquid Locking capabiltiies.
           </p>
+
+          <table class="w-full">
+            <tr class="border-b border-t border-slate-400/30 h-[30px] italic">
+              <td>Starting Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} on {{ dayjs.utc(data.startingDate).format('MMM D, YYYY') }}</td>
+              <td class="text-right">${{addCommas(formatPrice(data.startingBtcValue))}}</td>
+            </tr>
+            <tr class="border-b-2 border-slate-400/60 h-[30px] italic">
+              <td>Ending Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} <span v-if="data.bitcoinCount > 1">(you own {{ data.bitcoinCount }})</span> on {{ dayjs.utc(data.endingDate).format('MMM D, YYYY') }}</td>
+              <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue))}}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px]">
+              <td>Profits Accrued from Bitcoin Appreciation</td>
+              <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue - data.startingBtcValue))}}</td>
+            </tr>
+            <tr class="border-b-2 border-slate-400/60 h-[30px]">
+              <td>Bitcoin Transaction Fees and Related Expenses</td>
+              <td class="text-right">-${{ addCommas(formatPrice(data.hodlerExpenses)) }}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px] font-bold">
+              <td>Final Value of Your Investment (Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} + Cash - Expenses)</td>
+              <td class="text-right">${{addCommas(formatPrice(data.totalHodlerValue))}}</td>
+            </tr>
+            <tr class="border-b border-slate-400/30 h-[30px] font-bold">
+              <td>Total Hodler Profit</td>
+              <td class="text-right">{{addCommas(formatPrice(data.hodlerProfit * 100))}}%</td>
+            </tr>
+          </table>
+
         </div>
 
         <div v-else-if="id === 'download'" class="space-y-2">
@@ -48,20 +117,8 @@
           <p>View the code behind this tool.</p>
         </div>
 
-        <div v-else-if="id === 'enterVaultAt'" class="space-y-2">
-          <p>This determines when your bitcoin goes in the Argon vaults, and therefore, determines when the downside risk of your bitcoin is hedged. The quantity or dollar amount of bitcoin does not change your percentage returns.</p>
-        </div>
-
-        <div v-else-if="id === 'exitVaultAt'" class="space-y-2">
-          <p>This is the date when you pull your bitcoin out of the Argon vaults, and therfore the final date when all the profit calculations are determined.</p>
-        </div>
-
-        <div v-else-if="id === 'ratchetPct'" class="space-y-2">
-          <p>The lower your ratchet percentage, the tighter the hedge on your downside risk, and therefore, the stronger your upside potential.</p>
-        </div>
-
         <div v-else-if="id === 'addPriceDrop'" class="space-y-2">
-          <p>Force Argon into a price drop to see how vaulted bitcoins performs in an Argon down market.</p>
+          <p>Force Argon into a price drop to see how vaulted bitcoins perform in an Argon down market.</p>
         </div>
       </div>
     </div>            
@@ -73,7 +130,7 @@ import * as Vue from 'vue';
 import dayjs from 'dayjs';
 import dayjsUtc from 'dayjs/plugin/utc';
 import emitter from '../emitters/basic';
-import { currency, formatPrice, formatShorthandNumber } from '../lib/BasicUtils';
+import { addCommas, formatPrice } from '../lib/BasicUtils';
 
 dayjs.extend(dayjsUtc);
 

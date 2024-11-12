@@ -41,11 +41,15 @@ export default class Vault {
   public startingDate: string;
   public endingDate: string;
 
+  public hodlerExpenses = 0;
+
   public totalExpenses = 0;
   public totalArgonsMinted = 0;
   public totalCostOfArgonsToBurn = 0;
   public totalCashUnlocked = 0;
   public totalAccruedValue = 0;
+
+  public profitFromShorts = 0;
 
   constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[], btcPrices: BtcPrices, btcFees: BtcFees, bitcoinCount: number) {
     this.startingDate = startingDate;
@@ -64,8 +68,12 @@ export default class Vault {
     this.run();
   }
 
+  public get totalHodlerValue(): number {
+    return (this.prices[this.prices.length - 1].price * this.bitcoinCount) - this.hodlerExpenses;
+  }
+
   public get hodlerProfit(): number {
-    return Vault.calculateProfit(this.prices[0].price, this.actions[this.actions.length - 1].price);
+    return Vault.calculateProfit(this.prices[0].price * this.bitcoinCount, this.totalHodlerValue);
   }
 
   public get startingPrice(): number {
@@ -82,6 +90,11 @@ export default class Vault {
     return Vault.calculateProfit(startingValue, endingValue);
   }
 
+  public get profitFromInitialLock(): number {
+    const lossSaved = Math.max(0, (this.startingPrice + this.hodlerExpenses) - this.endingPrice);
+    return lossSaved * this.bitcoinCount;
+  }
+
   public run() {
     this.actions = [];
 
@@ -94,6 +107,8 @@ export default class Vault {
       const securityFee = startingPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = this.btcFees.getByDate(this.startingDate);
       const cashChange = (startingPrice * bitcoinCount) - (costOfArgonsToBurn + securityFee + btcTransactionFee);
+
+      this.hodlerExpenses = securityFee + btcTransactionFee;
 
       this.totalExpenses = securityFee + btcTransactionFee;
       this.totalArgonsMinted = (startingPrice * bitcoinCount);
@@ -138,7 +153,9 @@ export default class Vault {
 
       if (currentShort) {
         qtyOfArgonsToBurn = Vault.calculateUnlockBurnPerBitcoinDollar(currentShort.lowestPrice) * unlockPriceOfBtc * bitcoinCount;
-        costOfArgonsToBurn = qtyOfArgonsToBurn * currentShort.lowestPrice;
+        const newCostOfArgonsToBurn = qtyOfArgonsToBurn * currentShort.lowestPrice;
+        this.profitFromShorts += costOfArgonsToBurn - newCostOfArgonsToBurn;
+        costOfArgonsToBurn = newCostOfArgonsToBurn;
       }
 
       const securityFee = currentPrice * VAULT_SECURITY_PCT;
@@ -179,12 +196,16 @@ export default class Vault {
       if (this.shortsByDate.EXIT) {
         const currentShort = this.shortsByDate.EXIT;
         qtyOfArgonsToBurn = Vault.calculateUnlockBurnPerBitcoinDollar(currentShort.lowestPrice) * unlockPriceOfBtc * bitcoinCount;
-        costOfArgonsToBurn = qtyOfArgonsToBurn * currentShort.lowestPrice;
+        const newCostOfArgonsToBurn = qtyOfArgonsToBurn * currentShort.lowestPrice;
+        this.profitFromShorts += costOfArgonsToBurn - newCostOfArgonsToBurn;
+        costOfArgonsToBurn = newCostOfArgonsToBurn;
       }
 
       const securityFee = endingPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = this.btcFees.getByDate(this.endingDate);
       const cashChange = -(costOfArgonsToBurn + securityFee + btcTransactionFee);
+
+      this.hodlerExpenses += securityFee + btcTransactionFee;
 
       this.totalExpenses += securityFee + btcTransactionFee;
       this.totalArgonsMinted += 0;

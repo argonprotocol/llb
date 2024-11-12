@@ -4,7 +4,7 @@ import baseRules, { IRules } from './lib/RulesConfig';
 import API from './lib/API';
 import BtcFees from './lib/BtcFees';
 import BtcPrices from './lib/BtcPrices';
-import Vault from './lib/Vault';
+import Vault, { IAction } from './lib/Vault';
 
 export type IPanelName =  'runner' | 'base';
 
@@ -38,8 +38,15 @@ export const useBasicStore = defineStore('help', () => {
     hodlerProfit: 0,
   });
 
-  function updateVaultStats(data: IVaultStats) {
-    vaultStats.value = data;
+  function updateVaultStats() {
+    if (!vault.value) return;
+    vaultStats.value = {
+      ratchetCount: vault.value.actions.filter((a: IAction) => a.type === 'ratchet-up' || a.type === 'ratchet-down').length,
+      shortCount: vault.value.shorts.length,
+      cashUnlocked: vault.value.totalCashUnlocked,
+      vaulterProfit: vault.value.vaulterProfit,
+      hodlerProfit: vault.value.hodlerProfit,
+    };
   }
 
   async function loadData() {

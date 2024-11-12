@@ -19,13 +19,13 @@
                 <th class="text-left"><div>BTC Price</div></th>
                 <th class="text-left"><div>Fees</div></th>
                 <th class="text-left"><div>Cash Change</div></th>
-                <th class="text-right"><div>Cash Unlocked</div></th>
+                <th class="text-right"><div>Accrued Cash</div></th>
                 <th class="text-right"><div>Accrued Value</div></th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(action, index) in actions" :key="index" class="hover:bg-slate-100" @mouseenter="highlight(index, action)" @mouseleave="unhighlight(index, action)">
-                <td><div>{{ dayjs.utc(action.date).format('MMMM D, YYYY') }}</div></td>
+                <td><div>{{ dayjs.utc(action.date).format('MMM D, YYYY') }}</div></td>
                 <td><div>{{ formatLabel(action.type) }}</div></td>
                 <td><div>${{ addCommas(formatPrice(action.price, 0)) }}</div></td>
                 <td><div>

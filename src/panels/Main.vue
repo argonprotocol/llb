@@ -6,25 +6,39 @@
         
         <section class="divide-y divide-slate-400/40 border-b border-slate-400/40 whitespace-nowrap uppercase text-sm">
           <h3 class="py-1 font-semibold text-base">CONFIGURE YOUR BITCOIN STRATEGY</h3>
-          <div class="py-2 pr-3" insightId="enterVaultAt" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+          <div class="group relative py-2 pr-3">
             You bought 
             <EditorButton id="bitcoinCount" type="number" v-model="bitcoinCount" @showing="showingEditor" @hiding="hidingEditor" @updated="runVault" />
             {{ bitcoinCount === 1 ? 'bitcoin' : 'bitcoins' }} on
             <EditorButton id="dateLeft" type="date" v-model="sliderDates.left" @updated="updateLeftSliderDate" @showing="showingEditor" @hiding="hidingEditor" />
             for ${{ purchasePrice > 100 ? addCommas(Math.round(purchasePrice)) : purchasePrice.toFixed(2) }}
+            <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
+              <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
+              Set the date when your bitcoin enters the Argon vaults. This determines when the downside risk of your bitcoin is hedged. The quantity or dollar amount of bitcoin does not change your percentage returns.
+            </div>
           </div>
-          <div class="py-2 pr-3" insightId="exitVaultAt" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+          <div class="group relative py-2 pr-3">
             You hodl your bitcoin{{ bitcoinCount === 1 ? '' : 's' }} until 
             <EditorButton id="dateRight" type="date" v-model="sliderDates.right" @updated="updateRightSliderDate" @showing="showingEditor" @hiding="hidingEditor" />
+            <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
+              <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
+              Set the date when you pull your bitcoin out of the Argon vaults. This is the date when the final profit calculations are determined.
+            </div>
           </div>
-          <div v-if="ratchetPct > 0" class="py-2 pr-3" insightId="ratchetPct" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
-            You ratchet whenever Bitcoin's price changes 
-            <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" />
-            or more
-          </div>
-          <div v-else class="py-2 pr-3" insightId="ratchetPct" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
-            Ratcheting is
-            <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" label="disabled" />
+          <div class="group relative py-2 pr-3">
+            <template v-if="ratchetPct > 0" >
+              You ratchet whenever Bitcoin's price changes 
+              <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" />
+              or more
+            </template>
+            <template v-else>
+              Ratcheting is
+              <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" label="disabled" />
+            </template>
+            <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
+              <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
+              The lower your ratchet percentage, the tighter your hedge on downside risk, and therefore, the stronger your upside potential. Disable this feature by setting it to zero.
+            </div>
           </div>
         </section>
 
@@ -42,7 +56,7 @@
           </div>
           <div v-else v-for="short of shorts" :key="short.date">
             <div PriceDrop v-if="short.date === 'EXIT'" class="border-b border-slate-400/40 py-2" @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
-              Argon collapses to ${{ short.lowestPrice }} immediately before pulling your bitcoin
+              Argon collapses to ${{ short.lowestPrice }} on the last day
               <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
                 <TrashIcon class="w-4 h-4" />
               </div>
@@ -272,7 +286,7 @@ function startDrag(side: 'left' | 'right', event: MouseEvent | TouchEvent) {
 function onDrag(event: MouseEvent | TouchEvent) {
   if (!isDragging.value) return;
   hideInsight();
-  
+
   const rawX = event.touches ? event.touches[0].clientX : event.clientX;
   const currentX = rawX + dragMeta.elemOffset;
   const currentIndex = chartRef.value?.getItemIndexFromEvent(event, { x: currentX });
@@ -400,15 +414,7 @@ function runVault() {
   bitcoinCount.value = Math.max(Math.round(bitcoinCount.value), 1);
   purchasePrice.value = startingItem.price * bitcoinCount.value;
   vault.value = new Vault(startingItem.date, endingItem.date, ratchetPct.value, shorts.value, btcPrices, btcFees, bitcoinCount.value);
-
-
-  basicStore.updateVaultStats({
-    ratchetCount: vault.value.actions.filter((a: IAction) => a.type === 'ratchet-up' || a.type === 'ratchet-down').length,
-    shortCount: vault.value.shorts.length,
-    cashUnlocked: vault.value.totalCashUnlocked,
-    vaulterProfit: vault.value.vaulterProfit,
-    hodlerProfit: vault.value.hodlerProfit,
-  });
+  basicStore.updateVaultStats();
 
   actions.value = vault.value.actions;
 }
@@ -604,6 +610,34 @@ Vue.onUnmounted(() => {
       right: 0;
       top: 1px;
       bottom: 2px;
+    }
+  }
+
+  [InlineInsight] {
+    @apply -translate-y-0.5;
+    &:before {
+      content: '';
+      position: absolute;
+      left: -16px;
+      top: 50%;
+      margin-top: -14px;
+      width: 0;
+      height: 0;
+      border-top: 18px solid transparent;
+      border-bottom: 18px solid transparent;
+      border-right: 16px solid rgba(148, 163, 184, 0.4);
+    }
+    &:after {
+      content: '';
+      position: absolute;
+      left: -14.5px;
+      top: 50%;
+      margin-top: -14px;
+      width: 0;
+      height: 0;
+      border-top: 18px solid transparent;
+      border-bottom: 18px solid transparent;
+      border-right: 16px solid #E6EAF3;
     }
   }
 }
