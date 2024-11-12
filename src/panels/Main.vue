@@ -51,17 +51,17 @@
               <span class="text-slate-400/60">)</span>
             </span>
           </h3>
-          <div v-if="!shorts.length" class="border-b border-slate-400/40 py-2 italic text-slate-500/80">
+          <div v-if="!activeShorts.length" class="border-b border-slate-400/40 py-2 italic text-slate-500/80">
             No price drops configured
           </div>
-          <div v-else v-for="short of shorts" :key="short.date">
+          <div v-else v-for="short of activeShorts" :key="short.date">
             <div PriceDrop v-if="short.date === 'EXIT'" class="border-b border-slate-400/40 py-2" @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
               Argon collapses to ${{ short.lowestPrice }} on the last day
               <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
                 <TrashIcon class="w-4 h-4" />
               </div>
             </div>
-            <div PriceDrop v-else-if="short.date.isAfter(sliderDates.left) && short.date.isBefore(sliderDates.right)" class="border-b border-slate-400/40 py-2"  @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
+            <div PriceDrop v-else class="border-b border-slate-400/40 py-2"  @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
               On {{ dayjs(short.date).format('MMMM D, YYYY') }} Argon drops from $1.00 to ${{ short.lowestPrice }}
               <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
                 <TrashIcon class="w-4 h-4" />
@@ -168,6 +168,9 @@ const shorts: Vue.Ref<IShort[]> = Vue.ref([
   { date: dayjs.utc('2022-03-09'), lowestPrice: 0.46 },
   { date: 'EXIT', lowestPrice: 0.001 },
 ]);
+const activeShorts = Vue.computed(() => shorts.value.filter((s: IShort) => {
+  return s.date === 'EXIT' || (s.date.isAfter(sliderDates.value.left) && s.date.isBefore(sliderDates.value.right));
+}));
 
 const datePickerIsOpen = Vue.ref(false);
 
@@ -342,12 +345,7 @@ function stopDrag(event: MouseEvent | TouchEvent) {
 }
 
 function updateNibActiveBeforeDrag() { 
-  const otherSide = dragMeta.side === 'left' ? 'right' : 'left';
-
   nibsActive.value[dragMeta.side] = true;
-  if (!dragMeta.hasShiftKey) {
-    nibsActive.value[otherSide] = false;
-  }
 }
 
 function updateNibActiveAfterDrag() { 
@@ -413,7 +411,7 @@ function runVault() {
   
   bitcoinCount.value = Math.max(Math.round(bitcoinCount.value), 1);
   purchasePrice.value = startingItem.price * bitcoinCount.value;
-  vault.value = new Vault(startingItem.date, endingItem.date, ratchetPct.value, shorts.value, btcPrices, btcFees, bitcoinCount.value);
+  vault.value = new Vault(startingItem.date, endingItem.date, ratchetPct.value, activeShorts.value, btcPrices, btcFees, bitcoinCount.value);
   basicStore.updateVaultStats();
 
   actions.value = vault.value.actions;
