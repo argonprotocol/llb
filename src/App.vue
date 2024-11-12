@@ -21,8 +21,8 @@
 import * as Vue from 'vue';
 import { useBasicStore } from './store';
 import Header from './components/Header.vue';
-import Loading from './view-panels/Loading.vue';
-import Main from './view-panels/Main.vue';
+import Loading from './panels/Loading.vue';
+import Main from './panels/Main.vue';
 import { storeToRefs } from 'pinia';
 import WelcomeOverlay from './overlays/WelcomeOverlay.vue';
 import TheKeyOverlay from './overlays/TheKeyOverlay.vue';

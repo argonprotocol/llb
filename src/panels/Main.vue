@@ -159,6 +159,8 @@ const datePickerIsOpen = Vue.ref(false);
 
 function showInsight(event: MouseEvent) {
   if (datePickerIsOpen.value) return;
+  if (isDragging.value) return;
+
   InsightUtils.showInsight(event);
 }
 
@@ -269,8 +271,8 @@ function startDrag(side: 'left' | 'right', event: MouseEvent | TouchEvent) {
 
 function onDrag(event: MouseEvent | TouchEvent) {
   if (!isDragging.value) return;
-
-
+  hideInsight();
+  
   const rawX = event.touches ? event.touches[0].clientX : event.clientX;
   const currentX = rawX + dragMeta.elemOffset;
   const currentIndex = chartRef.value?.getItemIndexFromEvent(event, { x: currentX });
@@ -455,8 +457,9 @@ function handleKeyPress(event: KeyboardEvent) {
         stepsToJump = newIndex - sliderIndexes.value.left;
       } else if (isRightKey) {
         const spaceBetween = sliderIndexes.value.right - sliderIndexes.value.left;
+        console.log('MAX', spaceBetween);
         let newIndex = chartRef.value?.getNextMonthIndex(sliderIndexes.value.left);
-        newIndex = Math.min(stepsToJump - spaceBetween, maxIndex - spaceBetween) + spaceBetween;
+        newIndex = Math.min(newIndex + spaceBetween, maxIndex) - spaceBetween;
         stepsToJump = newIndex - sliderIndexes.value.left;
       }
     } else {

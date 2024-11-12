@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute z-50 pointer-events-none" :style="`left: ${leftPx}px; top: ${config.top}px; opacity: ${config.opacity}`">
+  <div class="absolute z-50 pointer-events-none" :style="`left: ${leftPx}px; top: ${topPx}px; opacity: ${config.opacity}`">
     
     <div Arrow ref="arrowRef" :style="{'--tw-rotate': `${rotationDegree}deg`, 'left': `${arrowLeft}px`}" class="relative -translate-y-1/2 -translate-x-1/2 mt-[-0.5px] z-1">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,9 +44,20 @@ const item = Vue.computed(() => {
   return props.config.item;
 });
 
-const leftPx = Vue.computed(() => {
-  const boxRect = boxRef.value?.getBoundingClientRect();
-  if (boxRect && boxRect.left > -100 && boxRect.left <= 5 && !boxOverride.value.isResetting) {
+const topPx = Vue.computed(() => {
+  if (boxOverride.value.top) {
+    boxOverride.value.top = props.config.top + 16;
+  }
+  return props.config.top;
+});
+
+function checkLeftBoxPosition(left: number, boxRect: DOMRect) {
+  if (!boxRect) return;
+  if (left > window.innerHeight / 2) return;
+
+  const isTooFarLeft = boxRect.left > -100 && boxRect.left <= 5;
+
+  if (isTooFarLeft && !boxOverride.value.isResetting) {
     if (!boxOverride.value.left) {
       boxOverride.value.left = 5;
       boxOverride.value.top = boxRect.top + 10;
@@ -57,17 +68,54 @@ const leftPx = Vue.computed(() => {
         boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: true };
       }
     }
-  } else if (boxRect && boxRect.left > 5) {
+  } else if (boxRect.left > 5) {
     boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: false };
   }
+}
 
-  return props.config.left + (isLeft ? -3 : 7);
+function checkRightBoxPosition(left: number, boxRect: DOMRect) {
+  if (!boxRect) return;
+  if (left < window.innerHeight / 2) return;
+
+  const isTooFarRight = boxRect.right >= window.innerWidth - 15;
+
+  if (isTooFarRight && !boxOverride.value.isResetting) {
+    console.log('isTooFarRight', isTooFarRight, boxOverride.value.left);
+
+    if (!boxOverride.value.left) {
+      boxOverride.value.left = window.innerWidth - boxRect.width - 15;
+      boxOverride.value.top = boxRect.top + 10;
+      boxOverride.value.arrowLeft = arrowRef.value?.getBoundingClientRect().right || 0;
+      console.log('SET arrowLeft', boxOverride.value.arrowLeft);
+    } else {
+      const arrowLeft = arrowRef.value?.getBoundingClientRect().right || 0;
+      if (arrowLeft < boxOverride.value.arrowLeft) {
+        console.log('LEFT arrowLeft', arrowLeft);
+        boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: true };
+      }
+    }
+  } else if (boxRect.right < window.innerWidth - 20) {
+    console.log('RESET');
+    boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: false };
+  } 
+}
+
+const leftPx = Vue.computed(() => {
+  const left = props.config.left + (isLeft ? -3 : 7);
+  const boxRect = boxRef.value?.getBoundingClientRect();
+
+  if (boxRect) {
+    checkLeftBoxPosition(left, boxRect);
+    checkRightBoxPosition(left, boxRect);
+  }
+
+  return left;
 });
 
 const boxStyles = Vue.computed(() => {
   if (boxOverride.value.left) {
     rotationDegree.value = 180;
-    arrowLeft.value = 5;
+    arrowLeft.value = -5;
     return { 
       position: 'fixed', 
       left: `${boxOverride.value.left}px`, 

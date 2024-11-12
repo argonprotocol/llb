@@ -189,7 +189,7 @@ export default class Vault {
       this.totalExpenses += securityFee + btcTransactionFee;
       this.totalArgonsMinted += 0;
       this.totalCostOfArgonsToBurn += costOfArgonsToBurn;
-      this.totalAccruedValue += (endingPrice * bitcoinCount) - cashChange;
+      this.totalAccruedValue += (endingPrice * bitcoinCount) + cashChange;
 
       this.actions.push({
         date: this.endingDate,
