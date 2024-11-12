@@ -2,8 +2,8 @@ import dayjs, { type Dayjs } from "dayjs";
 import IBitcoinPriceRecord from '../interfaces/IBitcoinPriceRecord';
 
 export default class BtcPrices {
-  private prices: IBitcoinPriceRecord[] = [];
-  private indexByDate: { [date: string]: number } = {};
+  public prices: IBitcoinPriceRecord[] = [];
+  public indexByDate: { [date: string]: number } = {};
 
   public load(prices: IBitcoinPriceRecord[]) {
     this.prices = prices.map((x: any, index: number) => {

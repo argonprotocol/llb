@@ -19,7 +19,7 @@
                   <p>
                     Liquid Locking is the process of 
                     securing your bitcoin in an Argon Vault, which also hedges your bitcoin against any loss in value. In return, your
-                    locked bitcoins anchor a stablization mechanism for the Argon currency, without altering teh custody of your bitcoin.
+                    locked bitcoins anchor a stablization mechanism for the Argon currency, without altering the custody of your bitcoin.
                     (<a href="https://sam.argonprotocol.org" target="_blank" class="text-blue-600 underline">explore our Stabilization Analysis Model</a>).
                   </p>
 

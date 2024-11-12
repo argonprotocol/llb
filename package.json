@@ -18,6 +18,7 @@
     "@popperjs/core": "^2.11.8",
     "@tailwindcss/forms": "^0.5.9",
     "@vueform/slider": "^2.1.10",
+    "axios": "^1.7.7",
     "chart.js": "^4.4.4",
     "chartjs-adapter-dayjs-4": "^1.0.4",
     "compressedstorage": "^1.1.0",

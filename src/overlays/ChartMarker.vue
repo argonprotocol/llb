@@ -1,7 +1,7 @@
 <template>
   <div class="absolute z-50 pointer-events-none" :style="`left: ${leftPx}px; top: ${config.top}px; opacity: ${config.opacity}`">
     
-    <div Arrow :style="{'--tw-rotate': `${rotationDegree}deg`}" class="relative -translate-y-1/2 -translate-x-1/2 mt-[-0.5px] z-1">
+    <div Arrow ref="arrowRef" :style="{'--tw-rotate': `${rotationDegree}deg`, 'left': `${arrowLeft}px`}" class="relative -translate-y-1/2 -translate-x-1/2 mt-[-0.5px] z-1">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 0L24 12H0L12 0Z" fill="white"/>
       </svg>
@@ -10,9 +10,9 @@
       </svg>
     </div>
 
-    <div :class="[boxLeftPos]" class="absolute -top-0 text-center transform translate-y-[-60%] z-0 whitespace-nowrap px-1 py-2 flex flex-col shadow bg-white border border-slate-400/60 rounded">
-      <div class="font-bold border-b border-slate-300/60 px-3 pb-1 mb-1">{{ dayjs.utc(item.date).format('MMMM D, YYYY') }}</div>
-      <div class="text-slate-400  px-3">{{isLeft ? 'Price: ' : 'Price: '}} ${{ addCommas(formatPrice(item.price)) }}</div>
+    <div ref="boxRef" :style="[boxStyles]" class="text-center z-0 whitespace-nowrap px-1 py-2 flex flex-col shadow bg-white border border-slate-400/60 rounded">
+      <div class="font-bold border-b border-slate-300/60 px-3 pb-1 mb-1">{{ dayjs.utc(item.date).format('MMM D, YYYY') }}</div>
+      <div class="text-slate-400  px-3">{{isLeft ? 'Bought ' : 'Exited '}} at ${{ addCommas(formatPrice(item.price)) }}</div>
     </div>
     
   </div>
@@ -31,16 +31,62 @@ const props = defineProps<{
   direction: 'left' | 'right',
 }>();
 
+const arrowRef: Vue.Ref<HTMLElement | null> = Vue.ref(null);
+const arrowLeft = Vue.ref(0);
+
+const boxRef: Vue.Ref<HTMLElement | null> = Vue.ref(null);
+const boxOverride = Vue.ref({ left: 0, top: 0, arrowLeft: 0, isResetting: false });
 
 const isLeft = props.direction === 'left';
-const rotationDegree = isLeft ? 90 : -90;
+const rotationDegree = Vue.ref(isLeft ? 90 : -90);
 
 const item = Vue.computed(() => {
   return props.config.item;
 });
 
-const leftPx = Vue.computed(() => props.config.left + (isLeft ? -3 : 3));
-const boxLeftPos = Vue.computed(() => isLeft ? 'right-[119%]' : 'left-[20%]');
+const leftPx = Vue.computed(() => {
+  const boxRect = boxRef.value?.getBoundingClientRect();
+  if (boxRect && boxRect.left > -100 && boxRect.left <= 5 && !boxOverride.value.isResetting) {
+    if (!boxOverride.value.left) {
+      boxOverride.value.left = 5;
+      boxOverride.value.top = boxRect.top + 10;
+      boxOverride.value.arrowLeft = arrowRef.value?.getBoundingClientRect().left || 0;
+    } else {
+      const arrowLeft = arrowRef.value?.getBoundingClientRect().left || 0;
+      if (arrowLeft > boxOverride.value.arrowLeft) {
+        boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: true };
+      }
+    }
+  } else if (boxRect && boxRect.left > 5) {
+    boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: false };
+  }
+
+  return props.config.left + (isLeft ? -3 : 7);
+});
+
+const boxStyles = Vue.computed(() => {
+  if (boxOverride.value.left) {
+    rotationDegree.value = 180;
+    arrowLeft.value = 5;
+    return { 
+      position: 'fixed', 
+      left: `${boxOverride.value.left}px`, 
+      top: `${boxOverride.value.top}px`,
+      transform: 'translateY(-60%)',
+    };
+  }
+  
+  rotationDegree.value = isLeft ? 90 : -90;
+  arrowLeft.value = 0;
+
+  return {
+    position: 'absolute',
+    top: 0,
+    ...(isLeft ? { right: '119%' } : { left: '20%' }),
+    transform: 'translateY(-60%)',
+  };
+});
+
 </script>
 
 <style lang="scss" scoped>

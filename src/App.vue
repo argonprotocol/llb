@@ -13,6 +13,7 @@
     <WelcomeOverlay />
     <TheKeyOverlay />
     <Insight />
+    <EditorOverlay />
   </div>
 </template>
 
@@ -26,7 +27,7 @@ import { storeToRefs } from 'pinia';
 import WelcomeOverlay from './overlays/WelcomeOverlay.vue';
 import TheKeyOverlay from './overlays/TheKeyOverlay.vue';
 import Insight from './overlays/Insight.vue';
-
+import EditorOverlay from './overlays/EditorOverlay.vue';
 const basicStore = useBasicStore();
 const { loadData } = basicStore;
 const { isLoaded } = storeToRefs(basicStore);

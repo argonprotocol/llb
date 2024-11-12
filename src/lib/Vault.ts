@@ -10,11 +10,13 @@ export interface IAction {
   price: number;
   type: IActionType;
   argonsMinted: number;
-  costOfArgonBurn: number;
+  qtyOfArgonsToBurn: number;
+  costOfArgonsToBurn: number;
   securityFee: number;
   btcTransactionFee: number;
-  liquidCash: number;
-  aggregatedLiquidCash: number;
+  cashChange: number;
+  totalCashUnlocked: number;
+  totalAccruedValue: number;
 }
 
 export interface IShort {
@@ -25,24 +27,27 @@ export interface IShort {
 const VAULT_SECURITY_PCT = 0;
 
 export default class Vault {
+  public bitcoinCount: number;
+
   public actions: IAction[] = [];
   
   public shorts: IShort[] = [];
   public shortsByDate: Record<string, IShort> = {};
 
-  private prices: IBitcoinPriceRecord[] = [];
-  private btcFees: BtcFees;
-  private ratchetDec: number;
+  public prices: IBitcoinPriceRecord[] = [];
+  public btcFees: BtcFees;
+  public ratchetDec: number;
 
-  private startingDate: string;
-  private endingDate: string;
+  public startingDate: string;
+  public endingDate: string;
 
   public totalExpenses = 0;
   public totalArgonsMinted = 0;
-  public totalCostOfArgonBurn = 0;
-  public aggregatedLiquidCash = 0;
+  public totalCostOfArgonsToBurn = 0;
+  public totalCashUnlocked = 0;
+  public totalAccruedValue = 0;
 
-  constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[], btcPrices: BtcPrices, btcFees: BtcFees) {
+  constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[], btcPrices: BtcPrices, btcFees: BtcFees, bitcoinCount: number) {
     this.startingDate = startingDate;
     this.endingDate = endingDate;
     this.ratchetDec = ratchetPct / 100;
@@ -55,6 +60,7 @@ export default class Vault {
 
     this.prices = btcPrices.getDateRange(startingDate, endingDate);
     this.btcFees = btcFees;
+    this.bitcoinCount = bitcoinCount;
     this.run();
   }
 
@@ -71,40 +77,47 @@ export default class Vault {
   }
 
   public get vaulterProfit(): number {
-    const startingValue = this.startingPrice;
-    const endingValue = this.aggregatedLiquidCash;
+    const startingValue = this.startingPrice * this.bitcoinCount;
+    const endingValue = this.totalAccruedValue;
     return Vault.calculateProfit(startingValue, endingValue);
   }
 
-  private run() {
+  public run() {
     this.actions = [];
+
+    const bitcoinCount = this.bitcoinCount;
 
     {
       const startingPrice = this.prices[0].price;
-      const costOfArgonBurn = 0;
+      const qtyOfArgonsToBurn = 0;
+      const costOfArgonsToBurn = 0;
       const securityFee = startingPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = this.btcFees.getByDate(this.startingDate);
-      const liquidCash = startingPrice - (costOfArgonBurn + securityFee + btcTransactionFee);
+      const cashChange = (startingPrice * bitcoinCount) - (costOfArgonsToBurn + securityFee + btcTransactionFee);
 
       this.totalExpenses = securityFee + btcTransactionFee;
-      this.totalArgonsMinted = startingPrice;
-      this.totalCostOfArgonBurn = costOfArgonBurn;
-      this.aggregatedLiquidCash = liquidCash;
+      this.totalArgonsMinted = (startingPrice * bitcoinCount);
+      this.totalCostOfArgonsToBurn = (costOfArgonsToBurn * bitcoinCount);
+      this.totalCashUnlocked = cashChange;
+      this.totalAccruedValue = cashChange;
 
       this.actions.push({
         date: this.startingDate,
         price: startingPrice,
         type: 'enter-vault',
-        argonsMinted: startingPrice,
-        costOfArgonBurn,
+        argonsMinted: (startingPrice * bitcoinCount),
+        qtyOfArgonsToBurn,
+        costOfArgonsToBurn,
         securityFee,
         btcTransactionFee,
-        liquidCash,
-        aggregatedLiquidCash: this.aggregatedLiquidCash,
+        cashChange,
+        totalCashUnlocked: this.totalCashUnlocked,
+        totalAccruedValue: this.totalAccruedValue,
       });
     }
 
-    for (const item of this.prices) {
+    for (const [index, item] of this.prices.entries()) {
+      if (index === this.prices.length - 1) break;
       const currentPrice = item.price;
       const currentDate = item.date;
       const currentShort = this.shortsByDate[currentDate];
@@ -113,79 +126,85 @@ export default class Vault {
 
       const changePct = Vault.calculateProfit(lastAction.price, currentPrice);
       const changeAbs = currentPrice - lastAction.price;
-      const isEnoughChange = Math.abs(changeAbs) >= this.ratchetDec && Math.abs(changePct) >= this.ratchetDec;
+      const isEnoughChange = this.ratchetDec && (Math.abs(changeAbs) >= this.ratchetDec && Math.abs(changePct) >= this.ratchetDec);
       if (!isEnoughChange && !currentShort) {
         continue;
       }
 
-      let costOfArgonBurn =  Math.min(currentPrice, lastAction.price);
+      const unlockPriceOfBtc = Math.min(currentPrice, lastAction.price);
+
+      let qtyOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount;
+      let costOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount;
 
       if (currentShort) {
-        costOfArgonBurn = Vault.calculateUnlockPriceInDollars(currentPrice, currentShort.lowestPrice);
+        qtyOfArgonsToBurn = Vault.calculateUnlockBurnPerBitcoinDollar(currentShort.lowestPrice) * unlockPriceOfBtc * bitcoinCount;
+        costOfArgonsToBurn = qtyOfArgonsToBurn * currentShort.lowestPrice;
       }
 
       const securityFee = currentPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = changePct > 0 ? this.btcFees.getByDate(currentDate) : 0;
-      const liquidCash = currentPrice - (costOfArgonBurn + securityFee + btcTransactionFee);
+      const cashChange = (currentPrice * bitcoinCount) - (costOfArgonsToBurn + securityFee + btcTransactionFee);
 
       this.totalExpenses += securityFee + btcTransactionFee;
-      this.totalArgonsMinted += currentPrice;
-      this.totalCostOfArgonBurn += costOfArgonBurn;
-      this.aggregatedLiquidCash += liquidCash;
+      this.totalArgonsMinted += (currentPrice * bitcoinCount);
+      this.totalCostOfArgonsToBurn += costOfArgonsToBurn;
+      this.totalCashUnlocked += cashChange;
+      this.totalAccruedValue += cashChange;
 
       this.actions.push({
         date: currentDate,
         price: currentPrice,
         type: currentShort ? 'short' : (changePct > 0 ? 'ratchet-up' : 'ratchet-down'),
-        argonsMinted: currentPrice,
-        costOfArgonBurn,
+        argonsMinted: (currentPrice * bitcoinCount),
+        qtyOfArgonsToBurn,
+        costOfArgonsToBurn,
         securityFee,
         btcTransactionFee,
-        liquidCash,
-        aggregatedLiquidCash: this.aggregatedLiquidCash,
+        cashChange,
+        totalCashUnlocked: this.totalCashUnlocked,
+        totalAccruedValue: this.totalAccruedValue,
       });
     }
-
-    if (this.actions[this.actions.length - 1].date !== this.endingDate) {
+    
+    {
       // unlock bitcoin at the end
       const endingPrice = this.prices[this.prices.length - 1].price;
       const lastAction = this.actions[this.actions.length - 1];
       
-      let costOfArgonBurn =  Math.min(endingPrice, lastAction.price);
+      const unlockPriceOfBtc = Math.min(endingPrice, lastAction.price);
+
+      let qtyOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount;
+      let costOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount;
 
       if (this.shortsByDate.EXIT) {
-        costOfArgonBurn = Vault.calculateUnlockPriceInDollars(endingPrice, this.shortsByDate.EXIT.lowestPrice);
+        const currentShort = this.shortsByDate.EXIT;
+        qtyOfArgonsToBurn = Vault.calculateUnlockBurnPerBitcoinDollar(currentShort.lowestPrice) * unlockPriceOfBtc * bitcoinCount;
+        costOfArgonsToBurn = qtyOfArgonsToBurn * currentShort.lowestPrice;
       }
 
       const securityFee = endingPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = this.btcFees.getByDate(this.endingDate);
-      const liquidCash = endingPrice - (costOfArgonBurn + securityFee + btcTransactionFee);
+      const cashChange = -(costOfArgonsToBurn + securityFee + btcTransactionFee);
 
       this.totalExpenses += securityFee + btcTransactionFee;
       this.totalArgonsMinted += 0;
-      this.totalCostOfArgonBurn += costOfArgonBurn;
-      this.aggregatedLiquidCash += liquidCash;
+      this.totalCostOfArgonsToBurn += costOfArgonsToBurn;
+      this.totalAccruedValue += (endingPrice * bitcoinCount) - cashChange;
 
       this.actions.push({
         date: this.endingDate,
         price: endingPrice,
         type: 'exit-vault',
         argonsMinted: 0,
-        costOfArgonBurn,
+        qtyOfArgonsToBurn,
+        costOfArgonsToBurn,
         securityFee,
         btcTransactionFee,
-        liquidCash,
-        aggregatedLiquidCash: this.aggregatedLiquidCash,
+        cashChange,
+        totalCashUnlocked: this.totalCashUnlocked,
+        totalAccruedValue: this.totalAccruedValue,
       });
-    } else if (this.actions.length === 1) {
-      const lastAction = this.actions[this.actions.length - 1];
-      lastAction.type = 'exit-vault';
     }
-  }
-
-  public static calculateUnlockPriceInDollars(priceInDollars: number, argonRatioPrice: number): number {
-    const unlockBurnPerBitcoinDollar = Vault.calculateUnlockBurnPerBitcoinDollar(argonRatioPrice);
-    return priceInDollars * unlockBurnPerBitcoinDollar * argonRatioPrice;
   }
   
   public static calculateUnlockBurnPerBitcoinDollar(argonRatioPrice: number): number {

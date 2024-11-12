@@ -4,13 +4,14 @@ import baseRules, { IRules } from './lib/RulesConfig';
 import API from './lib/API';
 import BtcFees from './lib/BtcFees';
 import BtcPrices from './lib/BtcPrices';
+import Vault from './lib/Vault';
 
 export type IPanelName =  'runner' | 'base';
 
 export interface IVaultStats {
   ratchetCount: number;
   shortCount: number;
-  liquidCash: number;
+  cashUnlocked: number;
   vaulterProfit: number;
   hodlerProfit: number;
 }
@@ -21,7 +22,9 @@ export const useBasicStore = defineStore('help', () => {
   const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
 
   const ratchetPct = Vue.ref(10);
+  const bitcoinCount = Vue.ref(1);
 
+  const vault = Vue.ref<Vault | null>(null);
   const rules: Vue.Ref<IRules> = Vue.ref({ ...baseRules });
 
   const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: 3_698, right: 4_282 });
@@ -30,7 +33,7 @@ export const useBasicStore = defineStore('help', () => {
   const vaultStats: Vue.Ref<IVaultStats> = Vue.ref({
     ratchetCount: 0,
     shortCount: 0,
-    liquidCash: 0,
+    cashUnlocked: 0,
     vaulterProfit: 0,
     hodlerProfit: 0,
   });
@@ -53,11 +56,13 @@ export const useBasicStore = defineStore('help', () => {
     isLoaded, 
     btcPrices, 
     btcFees, 
+    vault,
     rules, 
     sliderIndexes, 
     sliderDates,
     vaultStats,
     ratchetPct,
+    bitcoinCount,
     loadData, 
     updateVaultStats,
   }

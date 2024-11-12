@@ -4,58 +4,52 @@
       
       <div class="absolute left-20 top-[20%] flex flex-col z-[1100] min-w-[30%] xl:min-w-[35%] pb-20">
         
-        <section class="divide-y divide-slate-400/40 border-b border-slate-400/40 whitespace-nowrap">
-          <h3 class="py-1 font-semibold">CONFIGURE YOUR BITCOIN</h3>
-          <div class="py-1 pr-3">
-            Bitcoin goes into the vault on
-            <DatePicker @update:modelValue="updateLeftSliderDate" v-model="sliderDates.left" timezone="UTC" is-required>
-              <template #default="{ togglePopover }">
-                <button
-                  class="text-sm font-mono border border-dashed px-1 border-slate-400/80 rounded bg-white/20 hover:bg-white/50"
-                  @click="togglePopover"
-                >
-                  {{ dayjs.utc(sliderDates.left).format('MMMM D, YYYY') }}
-                </button>
-              </template>
-            </DatePicker>
+        <section class="divide-y divide-slate-400/40 border-b border-slate-400/40 whitespace-nowrap uppercase text-sm">
+          <h3 class="py-1 font-semibold text-base">CONFIGURE YOUR BITCOIN STRATEGY</h3>
+          <div class="py-2 pr-3" insightId="enterVaultAt" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+            You bought 
+            <EditorButton id="bitcoinCount" type="number" v-model="bitcoinCount" @showing="showingEditor" @hiding="hidingEditor" @updated="runVault" />
+            {{ bitcoinCount === 1 ? 'bitcoin' : 'bitcoins' }} on
+            <EditorButton id="dateLeft" type="date" v-model="sliderDates.left" @updated="updateLeftSliderDate" @showing="showingEditor" @hiding="hidingEditor" />
+            for ${{ purchasePrice > 100 ? addCommas(Math.round(purchasePrice)) : purchasePrice.toFixed(2) }}
           </div>
-          <div class="py-1 pr-3">
-            Bitcoin is pulled from the Vault on
-            <DatePicker @update:modelValue="updateRightSliderDate" v-model="sliderDates.right" timezone="UTC" is-required>
-              <template #default="{ togglePopover }">
-                <button
-                  class="text-sm font-mono border border-dashed px-1 border-slate-400/80 rounded bg-white/20 hover:bg-white/50"
-                  @click="togglePopover"
-                >
-                  {{ dayjs.utc(sliderDates.right).format('MMMM D, YYYY') }}
-                </button>
-              </template>
-            </DatePicker>
+          <div class="py-2 pr-3" insightId="exitVaultAt" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+            You hodl your bitcoin{{ bitcoinCount === 1 ? '' : 's' }} until 
+            <EditorButton id="dateRight" type="date" v-model="sliderDates.right" @updated="updateRightSliderDate" @showing="showingEditor" @hiding="hidingEditor" />
           </div>
-          <div class="py-1 pr-3">
-            It ratchets when Bitcoin's price changes by 
-            <input type="text" @keydown="handleRatchetPctKeyPress" class="w-10 px-2 leading-none text-sm py-0 bg-white/20 hover:bg-white/50 rounded border-slate-400/60 border-dashed focus:border-solid font-mono" v-model="ratchetPct" />% or more
+          <div v-if="ratchetPct > 0" class="py-2 pr-3" insightId="ratchetPct" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+            You ratchet whenever Bitcoin's price changes 
+            <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" />
+            or more
+          </div>
+          <div v-else class="py-2 pr-3" insightId="ratchetPct" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+            Ratcheting is
+            <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" label="disabled" />
           </div>
         </section>
 
-        <section class="mt-4">
-          <h3 class="py-1 font-semibold border-b border-slate-400/40">
-            CONFIGURE ARGON PRICE DROPS 
-            <span class="text-slate-400/60">(</span><span @click="addShort" class="text-fuchsia-700 hover:text-fuchsia-500 cursor-pointer">ADD</span><span class="text-slate-400/60">)</span>
+        <section class="mt-4 uppercase text-sm">
+          <h3 class="py-1 font-semibold border-b border-slate-400/40 text-base">
+            <span insightId="addPriceDrop" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+              CONFIGURE ARGON PRICE DROPS 
+              <span class="text-slate-400/60">(</span>
+              <span @click="addShort" class="text-fuchsia-700 hover:text-fuchsia-500 cursor-pointer mx-1">ADD</span>
+              <span class="text-slate-400/60">)</span>
+            </span>
           </h3>
-          <div v-if="!shorts.length" class="border-b border-slate-400/40 py-1 italic text-slate-500/80">
+          <div v-if="!shorts.length" class="border-b border-slate-400/40 py-2 italic text-slate-500/80">
             No price drops configured
           </div>
           <div v-else v-for="short of shorts" :key="short.date">
-            <div PriceDrop v-if="short.date === 'EXIT'" class="border-b border-slate-400/40 py-1">
-              Argon collapses to ${{ short.lowestPrice }} right before you pull your bitcoin
-              <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
+            <div PriceDrop v-if="short.date === 'EXIT'" class="border-b border-slate-400/40 py-2" @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
+              Argon collapses to ${{ short.lowestPrice }} immediately before pulling your bitcoin
+              <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
                 <TrashIcon class="w-4 h-4" />
               </div>
             </div>
-            <div PriceDrop v-else-if="short.date.isAfter(sliderDates.left) && short.date.isBefore(sliderDates.right)" class="border-b border-slate-400/40 py-1">
+            <div PriceDrop v-else-if="short.date.isAfter(sliderDates.left) && short.date.isBefore(sliderDates.right)" class="border-b border-slate-400/40 py-2"  @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
               On {{ dayjs(short.date).format('MMMM D, YYYY') }} Argon drops from $1.00 to ${{ short.lowestPrice }}
-              <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
+              <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
                 <TrashIcon class="w-4 h-4" />
               </div>
             </div>
@@ -65,10 +59,9 @@
         <div class="absolute bottom-0 flex flex-row space-x-4 whitespace-nowrap">
           <Popover v-slot="{ open: isOpen }" class="relative">
             <PopoverButton class="inline-flex items-center gap-x-1 border border-slate-400 text-fuchsia-700 py-2 px-6 rounded-md bg-white/50 hover:bg-white/100 focus:outline-none">
-              <span class="pointer-events-none">{{ isOpen ? 'Close' : 'Open' }} Ratchets List</span>
-              <!-- <ChevronDownIcon class="h-5 w-5 pointer-events-none" aria-hidden="true" /> -->
+              <span class="pointer-events-none">Show Vault Transitions</span>
             </PopoverButton>
-            <ActionsList :actions="actions" :spaceAboveButton="calculateSpaceAboveButton(isOpen)" />
+            <ActionsList :actions="actions" :buttonSpacing="calculateButtonSpacing(isOpen)" />
           </Popover>
 
           <button @click="downloadRawData" class="border border-slate-400 text-fuchsia-700 py-2 px-6 rounded-md bg-white/50 hover:bg-white/100">
@@ -78,24 +71,24 @@
       </div>
 
       <div class="grow relative">
-        <NibSlider @mousedown="startDrag('left', $event)" @touchstart="startDrag('left', $event)" position="left" :pos="sliderLeft" :isActive="nibsActive.left" />
-        <NibSlider @mousedown="startDrag('right', $event)" @touchstart="startDrag('right', $event)" position="right" :pos="sliderRight" :isActive="nibsActive.right" />
+        <NibSlider @mousedown="startDrag('left', $event)" @touchstart="startDrag('left', $event)" position="left" :pos="sliderLeft" :isActive="nibsActive.left || highlightStart" />
+        <NibSlider @mousedown="startDrag('right', $event)" @touchstart="startDrag('right', $event)" position="right" :pos="sliderRight" :isActive="nibsActive.right || highlightEnd" />
         
         <ChartMarker direction="left" :config="chartMarkerLeft" class="z-[1000]" />
         <ChartMarker direction="right" :config="chartMarkerRight" class="z-[1000]" />
 
         <ChartBg />
         <Chart ref="chartRef" :disableTooltip="isDragging">
-          <!-- <template v-for="ratchet of ratchets" :key="ratchet.date">
-            <div v-if="ratchet.profitIncreasePct" :style="`left: ${ratchet.left}px; top: ${ratchet.profitTop}px; height: ${ratchet.profitHeight}px`" class="absolute -mt-3 font-bold text-slate-400">
-              <span class="text-green-600/70 relative z-30 text-sm">{{ formatShorthandNumber(ratchet.profitIncreasePct) }}%</span>
-              <div VerticalLine class="absolute left-1/2 top-5 bottom-0 bg-slate-400/30 w-[1px]"></div>
-            </div>
-            <div v-else-if="ratchet.isDownRatchet" :style="`left: ${ratchet.left}px; top: ${ratchet.iconTop}px; height: ${ratchet.iconHeight}px`" class="absolute -mt-3 font-bold text-slate-400">
-              <LockIcon Icon class="w-3 h-3 relative z-30" />
-              <div VerticalLine class="absolute left-1/2 top-5 bottom-0 bg-slate-400/30 w-[1px]"></div>
-            </div>
-          </template> -->
+          
+          <div v-if="ratchetToHighlight.isActive" :style="`left: ${ratchetToHighlight.left}px; top: ${ratchetToHighlight.top}px; height: ${ratchetToHighlight.height}px`" class="absolute font-bold text-slate-400 -translate-x-1/2">
+            <LockIcon Icon class="w-4 h-4 relative z-30" />
+            <div VerticalLine class="absolute left-1/2 top-6 bottom-0 w-[1px]"></div>
+          </div>
+
+          <div v-if="shortToHighlight.isActive" :style="`left: ${shortToHighlight.left}px; top: ${shortToHighlight.top}px; height: ${shortToHighlight.height}px`" class="absolute font-bold text-slate-400 -translate-x-1/2">
+            <ArgonIcon Icon class="w-6 h-6 relative z-30" />
+            <div VerticalLine class="absolute left-1/2 top-7 bottom-0 w-[1px]"></div>
+          </div>
         </Chart>
       </div>
     
@@ -122,8 +115,13 @@ import { TrashIcon } from '@heroicons/vue/24/outline';
 import ActionsList from '../overlays/ActionsList.vue';
 import ConfirmShortRemoval from '../overlays/ConfirmShortRemoval.vue';
 import AddShort from '../overlays/AddShort.vue';
-import { DatePicker } from '@angelblanco/v-calendar';
 import Download from '../lib/Download';
+import * as InsightUtils from '../lib/InsightUtils';
+import { hideInsight } from '../lib/InsightUtils';
+import EditorButton from '../components/EditorButton.vue';
+import { addCommas } from '../lib/BasicUtils';
+import LockIcon from '../assets/lock.svg';
+import ArgonIcon from '../assets/logo-straight.svg';
 
 import '@angelblanco/v-calendar/style.css';
 
@@ -131,7 +129,7 @@ dayjs.extend(utc);
 
 const basicStore = useBasicStore();
 const { btcPrices, btcFees } = basicStore;
-const { sliderIndexes, sliderDates, ratchetPct } = storeToRefs(basicStore);
+const { sliderIndexes, sliderDates, ratchetPct, bitcoinCount, vault } = storeToRefs(basicStore);
 
 const chartRef = Vue.ref<typeof Chart | null>(null);
 const chartMarkerLeft = Vue.ref({ left: 0, top: 0, opacity: 0, item: {} as any });
@@ -147,17 +145,34 @@ const nibsActive = Vue.ref({ left: false, right: false });
 const sliderLeft = Vue.ref(0);
 const sliderRight = Vue.ref(0);
 
-const actions = Vue.ref<IAction[]>([]);
-let vault = Vue.ref<Vault | null>(null);
+const purchasePrice = Vue.ref(0);
 
-const shorts = Vue.ref([
+const actions = Vue.ref<IAction[]>([]);
+
+const shorts: Vue.Ref<IShort[]> = Vue.ref([
   { date: dayjs.utc('2022-01-06'), lowestPrice: 0.001 },
   { date: dayjs.utc('2022-03-09'), lowestPrice: 0.46 },
   { date: 'EXIT', lowestPrice: 0.001 },
 ]);
 
+const datePickerIsOpen = Vue.ref(false);
+
+function showInsight(event: MouseEvent) {
+  if (datePickerIsOpen.value) return;
+  InsightUtils.showInsight(event);
+}
+
+function showingEditor() {
+  datePickerIsOpen.value = true;
+  hideInsight();
+}
+
+function hidingEditor() {
+  datePickerIsOpen.value = false;
+}
+
 function downloadRawData() {
-  new Download().run();
+  new Download(vault.value).run();
 }
 
 function addShort() {
@@ -193,17 +208,22 @@ function confirmShortRemoval(short: any) {
   emitter.emit('openConfirmShortRemoval', short);
 }
 
-function calculateSpaceAboveButton(isOpen: boolean) {
-  if (!isOpen) return 0;
+function calculateButtonSpacing(isOpen: boolean) {
+  if (!isOpen) return { buttonHeight: 0, spaceAboveButton: 0 };
 
   const targetElem = event.target as HTMLElement;
   const rect = targetElem.getBoundingClientRect();
   const spaceAboveButton = rect.top;
 
-  return spaceAboveButton;
+  return {
+    buttonHeight: rect.height,
+    spaceAboveButton
+  };
 }
 
 function updateLeftSliderDate(date: Date) {
+  if (isDragging.value) return;
+
   const index = chartRef.value?.getItemIndexFromDate(dayjs.utc(date).format('YYYY-MM-DD'));
   if (sliderIndexes.value.left === index) return;
 
@@ -212,6 +232,8 @@ function updateLeftSliderDate(date: Date) {
 }
 
 function updateRightSliderDate(date: Date) {
+  if (isDragging.value) return;
+
   const index = chartRef.value?.getItemIndexFromDate(dayjs.utc(date).format('YYYY-MM-DD'));
   if (sliderIndexes.value.right === index) return;
 
@@ -219,23 +241,16 @@ function updateRightSliderDate(date: Date) {
   runVault();
 }
 
-function handleRatchetPctKeyPress(event: KeyboardEvent) {
-  if (event.key === 'ArrowUp') {
-    ratchetPct.value += 1;
-  } else if (event.key === 'ArrowDown') {
-    ratchetPct.value -= 1;
-  }
-}
-
 function startDrag(side: 'left' | 'right', event: MouseEvent | TouchEvent) { 
   const elementLeftPos = side === 'left' ? sliderLeft.value : sliderRight.value;
   const otherSide = side === 'left' ? 'right' : 'left';
 
   isDragging.value = true;
+  const startX = event.touches ? event.touches[0].clientX : event.clientX;
   dragMeta = {
     side,
-    startX: event.clientX,
-    elemOffset: elementLeftPos - event.clientX,
+    startX,
+    elemOffset: elementLeftPos - startX,
     elemLeftPos: elementLeftPos,
     startNibActive: nibsActive.value[side],
     startIndex: sliderIndexes.value[side],
@@ -255,7 +270,9 @@ function startDrag(side: 'left' | 'right', event: MouseEvent | TouchEvent) {
 function onDrag(event: MouseEvent | TouchEvent) {
   if (!isDragging.value) return;
 
-  const currentX = event.touches ? event.touches[0].clientX : event.clientX;
+
+  const rawX = event.touches ? event.touches[0].clientX : event.clientX;
+  const currentX = rawX + dragMeta.elemOffset;
   const currentIndex = chartRef.value?.getItemIndexFromEvent(event, { x: currentX });
   
   dragMeta.wasDragged = dragMeta.wasDragged || (currentIndex !== dragMeta.startIndex);
@@ -280,7 +297,8 @@ function onDrag(event: MouseEvent | TouchEvent) {
 function stopDrag(event: MouseEvent | TouchEvent) {
   isDragging.value = false;
 
-  const currentX = event.touches ? event.touches[0].clientX : event.clientX;
+  const rawX = event.touches ? event.touches[0].clientX : event.clientX;
+  const currentX = rawX + dragMeta.elemOffset;
   const currentIndex = chartRef.value?.getItemIndexFromEvent(event, { x: currentX });
   
   if (dragMeta.isDraggingBoth) {
@@ -308,7 +326,12 @@ function stopDrag(event: MouseEvent | TouchEvent) {
 }
 
 function updateNibActiveBeforeDrag() { 
+  const otherSide = dragMeta.side === 'left' ? 'right' : 'left';
+
   nibsActive.value[dragMeta.side] = true;
+  if (!dragMeta.hasShiftKey) {
+    nibsActive.value[otherSide] = false;
+  }
 }
 
 function updateNibActiveAfterDrag() { 
@@ -331,10 +354,12 @@ function updateNibActiveAfterDrag() {
 function updateLeftSlider(index: number) {
   if (index > sliderIndexes.value.right - 1) return;
 
+  index = Math.max(index || 0, 0);
   sliderIndexes.value.left = index;
-  const startingItem = chartRef.value?.getItem(index);
 
+  const startingItem = chartRef.value?.getItem(index);
   const pointPosition = chartRef.value?.getPointPosition(index);
+  
   sliderLeft.value = pointPosition.x;
   sliderDates.value.left = startingItem.date;
   
@@ -347,10 +372,13 @@ function updateLeftSlider(index: number) {
 function updateRightSlider(index: number) {
   if (index < sliderIndexes.value.left + 1) return;
 
+  const maxIndex = chartRef.value?.getItemCount() - 1;
+  index = Math.min(index || maxIndex, maxIndex);
   sliderIndexes.value.right = index;
+  
   const endingItem = chartRef.value?.getItem(index);
-
   const pointPosition = chartRef.value?.getPointPosition(index);
+
   sliderRight.value = pointPosition.x;
   sliderDates.value.right = endingItem.date;
 
@@ -367,17 +395,20 @@ function runVault() {
   const startingItem = chartRef.value?.getItem(leftIndex);
   const endingItem = chartRef.value?.getItem(rightIndex);
   
-  vault = new Vault(startingItem.date, endingItem.date, ratchetPct.value, shorts.value, btcPrices, btcFees);
+  bitcoinCount.value = Math.max(Math.round(bitcoinCount.value), 1);
+  purchasePrice.value = startingItem.price * bitcoinCount.value;
+  vault.value = new Vault(startingItem.date, endingItem.date, ratchetPct.value, shorts.value, btcPrices, btcFees, bitcoinCount.value);
+
 
   basicStore.updateVaultStats({
-    ratchetCount: vault.actions.length,
-    shortCount: vault.shorts.length,
-    liquidCash: vault.aggregatedLiquidCash,
-    vaulterProfit: vault.vaulterProfit,
-    hodlerProfit: vault.hodlerProfit,
+    ratchetCount: vault.value.actions.filter((a: IAction) => a.type === 'ratchet-up' || a.type === 'ratchet-down').length,
+    shortCount: vault.value.shorts.length,
+    cashUnlocked: vault.value.totalCashUnlocked,
+    vaulterProfit: vault.value.vaulterProfit,
+    hodlerProfit: vault.value.hodlerProfit,
   });
 
-  actions.value = vault.actions;
+  actions.value = vault.value.actions;
 }
 
 function loadChartData() {
@@ -465,8 +496,67 @@ function handleKeyPress(event: KeyboardEvent) {
   }
 }
 
+const shortToHighlight = Vue.ref({
+  isActive: false,
+  left: 0,
+  top: 0,
+  height: 0,
+});
+
+function highlightShort(short: IShort) {   
+  const index = short.date === 'EXIT' ? sliderIndexes.value.right : chartRef.value?.getItemIndexFromDate(short.date);
+  const position = chartRef.value?.getPointPosition(index);
+  shortToHighlight.value = {
+    isActive: true,
+    left: position.x,
+    top: position.y - 200,
+    height: 200,
+  };
+}
+
+function unhighlightShort() {   
+  shortToHighlight.value.isActive = false;
+}
+
+const highlightStart = Vue.ref(false);
+const highlightEnd = Vue.ref(false);
+const ratchetToHighlight = Vue.ref({
+  isActive: false,
+  left: 0,
+  top: 0,
+  height: 0,
+});
+
+emitter.on('highlight', (data: any) => {
+  if (data.isStart) {
+    highlightStart.value = true;
+  } else if (data.isEnd) {
+    highlightEnd.value = true;
+  } else if (data.isRatchet) {
+    const index = chartRef.value?.getItemIndexFromDate(data.date);
+    const position = chartRef.value?.getPointPosition(index);
+    ratchetToHighlight.value = {
+      isActive: true,
+      left: position.x,
+      top: position.y - 200,
+      height: 200,
+    };
+  }
+});
+
+emitter.on('unhighlight', (data: any) => {
+  if (data.isStart) {
+    highlightStart.value = false;
+  } else if (data.isEnd) {
+    highlightEnd.value = false;
+  } else if (data.isRatchet) {
+    ratchetToHighlight.value.isActive = false;
+  }
+});
+
+
 Vue.watch(ratchetPct, (newVal: number) => {
-  ratchetPct.value = Math.max(newVal, 1);
+  ratchetPct.value = Math.max(newVal, 0);
   ratchetPct.value = Math.min(ratchetPct.value, 100);
   runVault();
 });
@@ -485,7 +575,8 @@ Vue.onUnmounted(() => {
 <style lang="scss">
 .Main.Component {
   [VerticalLine] {
-    box-shadow: 1px 1px 0 0 rgba(255, 255, 255, 1);
+    box-shadow: 1px 1px 0 0 rgba(255, 255, 255, 0.5);
+    background: linear-gradient(to bottom, rgba(71, 85, 105, 0.5) 0%, rgba(71, 85, 105, 0) 100%);
   }
 
   svg[Icon] path {

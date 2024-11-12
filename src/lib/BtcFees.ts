@@ -3,8 +3,8 @@ import IBitcoinFeeRecord from '../interfaces/IBitcoinFeeRecord';
 import BtcPrices from './BtcPrices';
 
 export default class BtcFees {
-  private feeByDate: Record<string, number> = {};
-  private btcPrices: BtcPrices;
+  public feeByDate: Record<string, number> = {};
+  public btcPrices: BtcPrices;
 
   constructor(btcPrices: BtcPrices) {
     this.btcPrices = btcPrices;
@@ -21,8 +21,11 @@ export default class BtcFees {
   public getByDate(date: string): number {
     const feeInBitcoins = this.getInBitcoins(date);
     if (!feeInBitcoins) {
-      const lastDate = dayjs.utc(date).subtract(1, 'day').format('YYYY-MM-DD')
-      return this.getByDate(lastDate);
+      const lastDate = dayjs.utc(date).subtract(1, 'day');
+      if (lastDate.isBefore('2010-07-18')) {
+        throw new Error('Date is before 2010-07-18');
+      }
+      return this.getByDate(lastDate.format('YYYY-MM-DD'));
     }
     const dollarToBitcoin = this.btcPrices.getByDate(date).price;
     const fee = feeInBitcoins * dollarToBitcoin;

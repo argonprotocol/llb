@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import * as Vue from 'vue';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import dayjsUtc from 'dayjs/plugin/utc';
 import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, TimeScale, Tooltip, TooltipModel } from 'chart.js';
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
@@ -153,7 +153,10 @@ function getItemCount() {
   return pointItems.length;
 }
 
-function getItemIndexFromDate(date: string) {
+function getItemIndexFromDate(date: string | Dayjs) {
+  if (dayjs.isDayjs(date)) {
+    date = date.format('YYYY-MM-DD');
+  }
   return pointItemsByDate[date] ? pointItems.indexOf(pointItemsByDate[date]) : -1;
 }
 
