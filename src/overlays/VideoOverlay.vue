@@ -1,6 +1,6 @@
 <template>
   <TransitionRoot as="template" :show="isOpen">
-    <Dialog class="relative z-[2000]">
+    <Dialog class="VideoOverlay Component relative z-[2000]">
       <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
         <div @click="close" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
       </TransitionChild>
@@ -19,8 +19,11 @@
                 <XMarkIcon class="inline-block w-4 h-4" />
               </div>
 
-              <div class="grow">  
-                <div style="position: relative; padding-bottom: 62.42774566473989%; height: 0;"><iframe src="https://www.loom.com/embed/e0d953d43ce84a95a6249c04b44a023c?sid=278f7f8e-d70a-4481-ab03-256a6deaad39" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+              <div class="grow relative">
+                <div class="LoadingPulse absolute inset-0 flex items-center justify-center text-slate-500/60 text-3xl uppercase">Loading Video...</div>
+                <div style="position: relative; padding-bottom: 62.42774566473989%; height: 0;">
+                  <iframe src="https://www.loom.com/embed/e0d953d43ce84a95a6249c04b44a023c?sid=278f7f8e-d70a-4481-ab03-256a6deaad39" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+                </div>
               </div>
             </DialogPanel>
 
@@ -59,13 +62,14 @@ emitter.on('openVideoOverlay', () => {
 
 </script>
 
-<style lang="scss" scoped>
-a {
-  @apply text-fuchsia-600 hover:text-fuchsia-500 underline decoration-dashed;
-  cursor: pointer;
-}
+<style lang="scss">
+.VideoOverlay.Component {
+  a {
+    @apply text-fuchsia-600 hover:text-fuchsia-500 underline decoration-dashed;
+    cursor: pointer;
+  }
 
-[CloseIcon]:hover {
+  [CloseIcon]:hover {
     opacity: 1;
     svg path {
       opacity: 1;
@@ -73,4 +77,22 @@ a {
       stroke: white;
     }
   }
+
+  .LoadingPulse {
+    opacity: 1;
+    animation: fadeInOut 1s linear infinite;
+  }
+
+  @keyframes fadeInOut {
+    0% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.3;
+    }
+  }
+}
 </style>
