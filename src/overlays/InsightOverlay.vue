@@ -1,11 +1,11 @@
 <template>
-  <div v-if="isOpen" :style="{ top: top, left: left, width: width, transform: `translate(${translateX}, ${translateY})` }" class="absolute z-[1200] border border-slate-500/30 flex flex-col rounded bg-white px-6 py-2 text-left shadow-xl transition-all pointer-events-none">
+  <div v-if="isOpen" :style="{ pointerEvents: isSticky ? 'auto' : 'none', top: top, left: left, width: width, transform: `translate(${translateX}, ${translateY})` }" class="absolute z-[1200] border border-gray-800/20 flex flex-col rounded bg-white px-6 py-2 text-left shadow-lg transition-all">
     
     <div :style="{ left: arrowLeft, top: arrowTop, bottom: arrowBottom, right: arrowRight, rotate: arrowRotate, transform: `translate(${arrowTranslateX}, ${arrowTranslateY})` }" class="absolute">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 0L24 12H0L12 0Z" fill="white"/>
       </svg>
-      <svg class="absolute z-0 -top-0.5 left-[-0.5px] opacity-20" width="26" height="14" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="absolute z-0 -top-0.5 left-[-1px] opacity-10" width="26" height="14" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 0L24 12H0L12 0Z" fill="black"/>
       </svg>
     </div>
@@ -29,45 +29,45 @@
           <p class="pb-2">Vaulting provides substantially higher returns than straight up hodling because of two things: they hedge against Bitcoin's downside volatility and they provide additional profit opportunities, such as ratcheting and shorting. The following table breaks down these returns:</p>
 
           <table class="w-full">
-            <tr class="border-b border-t border-slate-400/30 h-[30px] italic">
+            <tr class="border-b border-t border-slate-400/30 h-[30px] italic hover:bg-slate-100">
               <td>Starting Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} on {{ dayjs.utc(data.startingDate).format('MMM D, YYYY') }}</td>
               <td class="text-right">${{addCommas(formatPrice(data.startingBtcValue))}}</td>
             </tr>
-            <tr class="border-b-2 border-slate-400/60 h-[30px] italic">
+            <tr class="border-b-2 border-slate-400/60 h-[30px] italic hover:bg-slate-100">
               <td>Ending Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} <span v-if="data.bitcoinCount > 1">(you own {{ data.bitcoinCount }})</span> on {{ dayjs.utc(data.endingDate).format('MMM D, YYYY') }}</td>
               <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue))}}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px]">
+            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
               <td>Profits Accrued From Initial Lock</td>
               <td class="text-right">${{addCommas(formatPrice(data.profitFromInitialLock))}}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px]">
+            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
               <td>Profits Accrued From Ratcheting</td>
               <td class="text-right">${{addCommas(formatPrice(data.profitFromRatchets))}}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px]">
+            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
               <td>Profits Accrued From Short Covers</td>
               <td class="text-right">${{addCommas(formatPrice(data.profitFromShorts))}}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px]">
+            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
               <td>Profits Accrued from Bitcoin Appreciation</td>
               <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue - data.startingBtcValue))}}</td>
             </tr>
-            <tr class="border-b-2 border-slate-400/60 h-[30px]">
+            <tr class="border-b-2 border-slate-400/60 h-[30px] hover:bg-slate-100">
               <td>Bitcoin Transaction Fees and Related Expenses</td>
               <td class="text-right">-${{ addCommas(formatPrice(data.totalExpenses)) }}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] font-bold">
+            <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
               <td>Final Value of Your Investment (Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} + Cash - Expenses)</td>
               <td class="text-right">${{addCommas(formatPrice(data.totalAccruedValue))}}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] font-bold">
+            <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
               <td>Total Vaulter Profit</td>
               <td class="text-right">{{addCommas(formatPrice(data.vaulterProfit * 100))}}%</td>
             </tr>
           </table>
           
-          <p class="pt-2">It's important to note that this model does NOT use compounding returns. All profits are taken off the table as cash and are left to sit for the duration of the simulation.</p>
+          <p class="pt-2">It's important to note that this model does NOT calculate compounding returns. All profits are taken off the table as cash and are left to sit for the duration of the simulation.</p>
         </div>
 
         <div v-else-if="id === 'hodlerReturns'" class="space-y-2">
@@ -77,27 +77,27 @@
           </p>
 
           <table class="w-full">
-            <tr class="border-b border-t border-slate-400/30 h-[30px] italic">
+            <tr class="border-b border-t border-slate-400/30 h-[30px] italic hover:bg-slate-100">
               <td>Starting Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} on {{ dayjs.utc(data.startingDate).format('MMM D, YYYY') }}</td>
               <td class="text-right">${{addCommas(formatPrice(data.startingBtcValue))}}</td>
             </tr>
-            <tr class="border-b-2 border-slate-400/60 h-[30px] italic">
+            <tr class="border-b-2 border-slate-400/60 h-[30px] italic hover:bg-slate-100">
               <td>Ending Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} <span v-if="data.bitcoinCount > 1">(you own {{ data.bitcoinCount }})</span> on {{ dayjs.utc(data.endingDate).format('MMM D, YYYY') }}</td>
               <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue))}}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px]">
+            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
               <td>Profits Accrued from Bitcoin Appreciation</td>
               <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue - data.startingBtcValue))}}</td>
             </tr>
-            <tr class="border-b-2 border-slate-400/60 h-[30px]">
+            <tr class="border-b-2 border-slate-400/60 h-[30px] hover:bg-slate-100">
               <td>Bitcoin Transaction Fees and Related Expenses</td>
               <td class="text-right">-${{ addCommas(formatPrice(data.hodlerExpenses)) }}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] font-bold">
+            <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
               <td>Final Value of Your Investment (Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} + Cash - Expenses)</td>
               <td class="text-right">${{addCommas(formatPrice(data.totalHodlerValue))}}</td>
             </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] font-bold">
+            <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
               <td>Total Hodler Profit</td>
               <td class="text-right">{{addCommas(formatPrice(data.hodlerProfit * 100))}}%</td>
             </tr>
@@ -105,16 +105,20 @@
 
         </div>
 
-        <div v-else-if="id === 'download'" class="space-y-2">
-          <p>Download the full dataset of these returns.</p>
+        <div v-else-if="id === 'download'">
+          <p>Download Dataset</p>
         </div>
 
-        <div v-else-if="id === 'information'" class="space-y-2">
-          <p>Understand the pivotal role Liquid Locking can play in stabilizing a currency.</p>
+        <div v-else-if="id === 'playVideo'">
+          <p>Open Video</p>
         </div>
 
-        <div v-else-if="id === 'github'" class="space-y-2">
-          <p>View the code behind this tool.</p>
+        <div v-else-if="id === 'information'">
+          <p>More Info</p>
+        </div>
+
+        <div v-else-if="id === 'github'">
+          <p>Code Repository</p>
         </div>
 
         <div v-else-if="id === 'addPriceDrop'" class="space-y-2">
@@ -157,6 +161,16 @@ const arrowRotate = Vue.ref('0deg');
 const arrowTranslateY = Vue.ref('0');
 const arrowTranslateX = Vue.ref('0');
 
+const isSticky = Vue.ref(false);
+
+emitter.on('stickInsight', () => {
+  isSticky.value = true;
+});
+
+emitter.on('unstickInsight', () => {
+  isSticky.value = false;
+});
+
 emitter.on('showInsight', (incoming: any) => {
   isOpen.value = true;
   id.value = incoming.id;
@@ -164,7 +178,8 @@ emitter.on('showInsight', (incoming: any) => {
   alignTo.value = incoming.alignTo;
   width.value = incoming.width ? `${incoming.width}px` : '24rem';
   data.value = incoming.data;
-  
+  isSticky.value = incoming.isSticky;
+
   if (positionAt.value === 'top') {
     top.value = `${incoming.y - 5}px`;
     arrowTop.value = 'auto';

@@ -23,13 +23,13 @@ export function createChartOptions(chartPoints: any[], pointRadius: number[], on
       datasets: [
         {
           data: chartPoints,
-          borderColor: '#63298E',
+          borderColor: '#EFAB37',
           borderWidth: 3,
           pointBorderColor: 'white',
           pointBorderWidth: 1,
-          pointBackgroundColor: '#63298E',
+          pointBackgroundColor: '#EFAB37',
           pointHoverRadius: 5,
-          pointHoverBackgroundColor: '#9325E4',
+          pointHoverBackgroundColor: '#EFAB37',
           pointRadius: pointRadius,
           lineTension: 1
         },

@@ -1,6 +1,6 @@
 import emitter from '../emitters/basic';
 
-export function showInsight(event: MouseEvent, data: any = {}) {
+export function showInsight(event: MouseEvent, data: any = {}, isSticky = false) {
   event.stopPropagation();
   event.preventDefault();
   const targetElem = event.currentTarget as HTMLElement;
@@ -49,17 +49,8 @@ export function showInsight(event: MouseEvent, data: any = {}) {
     positionAt = 'bottom';
     y = targetRect.top + targetRect.height;
   }
-  
-  if (['download', 'information', 'github'].includes(id)) {
-    width = 250;
-    arrowX = 27;
-    x += 15;
-    if (id === 'information') {
-      width = 320;
-    }
-  }
-  
-  emitter.emit('showInsight', { id, x, y, width, positionAt, arrowX, arrowY, alignTo, data });
+    
+  emitter.emit('showInsight', { id, x, y, width, positionAt, arrowX, arrowY, alignTo, data, isSticky });
 }
 
 export function hideInsight() {

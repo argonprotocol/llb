@@ -5,6 +5,7 @@
     </div>
   </div>
   <div v-else class="flex flex-row min-h-screen w-screen select-none">
+    <Tour v-if="isLoaded && tourStep > 0" />
     <div class="flex flex-col h-screen grow min-w-[60rem]">
       <Header />
       <Main v-if="isLoaded" class="grow" />
@@ -12,7 +13,13 @@
     </div>
     <WelcomeOverlay />
     <TheKeyOverlay />
-    <Insight />
+    <InsightOverlay />
+    <TooltipOverlay />
+    <VideoOverlay />
+    <WhitepapersOverlay />
+    <FaqOverlay />
+    <MoreLiquidLocking />
+    <ConfirmConfigReset />
   </div>
 </template>
 
@@ -25,11 +32,18 @@ import Main from './panels/Main.vue';
 import { storeToRefs } from 'pinia';
 import WelcomeOverlay from './overlays/WelcomeOverlay.vue';
 import TheKeyOverlay from './overlays/TheKeyOverlay.vue';
-import Insight from './overlays/Insight.vue';
+import InsightOverlay from './overlays/InsightOverlay.vue';
+import TooltipOverlay from './overlays/TooltipOverlay.vue';
+import VideoOverlay from './overlays/VideoOverlay.vue';
+import WhitepapersOverlay from './overlays/WhitepapersOverlay.vue';
+import FaqOverlay from './overlays/FaqOverlay.vue';
+import MoreLiquidLocking from './overlays/MoreLiquidLocking.vue';
+import Tour from './panels/Tour.vue';
+import ConfirmConfigReset from './overlays/ConfirmConfigReset.vue';
 
 const basicStore = useBasicStore();
 const { loadData } = basicStore;
-const { isLoaded } = storeToRefs(basicStore);
+const { isLoaded, tourStep } = storeToRefs(basicStore);
 
 const windowWidth = Vue.ref(window.innerWidth);
 Vue.onMounted(() => {

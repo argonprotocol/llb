@@ -20,6 +20,8 @@ export const useBasicStore = defineStore('help', () => {
   const btcPrices = new BtcPrices();
   const btcFees = new BtcFees(btcPrices);
   const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
+  const tourStep: Vue.Ref<number> = Vue.ref(0);
+  const finishedWelcomeOverlay: Vue.Ref<boolean> = Vue.ref(false);
 
   const ratchetPct = Vue.ref(10);
   const bitcoinCount = Vue.ref(1);
@@ -30,6 +32,9 @@ export const useBasicStore = defineStore('help', () => {
   const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: 3_698, right: 4_282 });
   const sliderDates: Vue.Ref<{ left: string, right: string }> = Vue.ref({ left: '2010-08-17', right: '2024-08-26' });
 
+  const sliderLeft = Vue.ref(0);
+  const sliderRight = Vue.ref(0);
+
   const vaultStats: Vue.Ref<IVaultStats> = Vue.ref({
     ratchetCount: 0,
     shortCount: 0,
@@ -37,6 +42,8 @@ export const useBasicStore = defineStore('help', () => {
     vaulterProfit: 0,
     hodlerProfit: 0,
   });
+
+  const positionChecks: Record<string, () => DOMRect> = {};
 
   function updateVaultStats() {
     if (!vault.value) return;
@@ -46,6 +53,20 @@ export const useBasicStore = defineStore('help', () => {
       cashUnlocked: vault.value.totalCashUnlocked,
       vaulterProfit: vault.value.vaulterProfit,
       hodlerProfit: vault.value.hodlerProfit,
+    };
+  }
+
+  function registerPositionCheck(id: string, checkFn: () => DOMRect) {
+    positionChecks[id] = checkFn;
+  }
+
+  function getPositionCheck(id: string) {
+    const pos = positionChecks[id]();
+    return {
+      left: pos.left,
+      top: pos.top,
+      right: pos.right,
+      bottom: pos.bottom,
     };
   }
 
@@ -59,6 +80,10 @@ export const useBasicStore = defineStore('help', () => {
     isLoaded.value = true;
   }
 
+  function resetConfig() {
+
+  }
+
   return { 
     isLoaded, 
     btcPrices, 
@@ -67,10 +92,17 @@ export const useBasicStore = defineStore('help', () => {
     rules, 
     sliderIndexes, 
     sliderDates,
+    sliderLeft,
+    sliderRight,
     vaultStats,
     ratchetPct,
     bitcoinCount,
+    tourStep,
+    finishedWelcomeOverlay,
     loadData, 
     updateVaultStats,
+    registerPositionCheck,
+    getPositionCheck,
+    resetConfig,
   }
 });

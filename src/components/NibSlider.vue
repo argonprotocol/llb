@@ -1,6 +1,6 @@
 <template>
   <ChartOpaque :style="chartOpaqueStyle" class="absolute top-0 bottom-[47px] z-[500]" />
-  <div SelectedLine @mousedown="emitMousedown" @touchstart="emitTouchstart" :style="`left: ${posLeft}px; top: ${posTopPct}%`" :class="lineClasses" class="absolute bottom-3 z-[500] cursor-col-resize">
+  <div ref="$el" SelectedLine @mousedown="emitMousedown" @touchstart="emitTouchstart" :style="`left: ${posLeft}px; top: ${posTopPct}%`" :class="lineClasses" class="absolute bottom-3 z-[500] cursor-col-resize">
     <div class="Selected"></div>
     <div NibWrapper class="absolute left-1/2 bottom-0.5 ml-[1.5px] w-[26.5px] h-6 -translate-x-1/2 translate-y-1/2">
       <TriangleNib class="absolute left-0 bottom-0 w-[24.5px] h-6 cursor-grab" />
@@ -26,7 +26,9 @@ const emit = defineEmits<{
   (e: 'touchstart', event: TouchEvent): void
 }>();
 
+const $el = Vue.ref<HTMLElement | null>(null);
 const posLeft = Vue.computed(() => props.pos);
+
 const posTopPct = Vue.computed(() => {
   const viewportWidth = window.innerWidth;
   const leftPct = (props.pos / viewportWidth) * 100;
@@ -65,10 +67,11 @@ function emitMousedown(event: MouseEvent) {
 function emitTouchstart(event: TouchEvent) {
   emit('touchstart', event);
 }
+
+defineExpose({ $el });
 </script>
 
 <style lang="scss" scoped>
-
 [SelectedLine] {
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 50px);
     width: 4px;

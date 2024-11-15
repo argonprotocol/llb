@@ -1,5 +1,5 @@
 <template>
-  <TransitionRoot as="template" :show="open">
+  <TransitionRoot as="template" :show="isOpen">
     <Dialog class="relative z-[2000]">
       <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
@@ -8,32 +8,45 @@
       <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-            <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white px-5 pb-4 pt-5 text-left shadow-xl transition-all w-full max-w-2xl">
+            <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 pt-5 text-left shadow-xl transition-all w-full max-w-3xl">
               <div class="grow">
-                <DialogTitle as="h3" class="text-xl font-semibold leading-6 text-gray-900 whitespace-nowrap px-3">Welcome to Argon's Liquid Locking for Bitcoin</DialogTitle>
+                <DialogTitle as="h3" class="whitespace-nowrap px-3">
+                  <div class="text-lg font-bold text-slate-900/30">Argon Simulation Engine</div>
+                  <div class="text-4xl font-bold text-gray-900">Liquid Locking for Bitcoin</div>
+                </DialogTitle>
 
-                <div class="mt-3 text-left sm:mt-5 border-y border-gray-200 py-4 text-base text-gray-500 space-y-3 px-3">
+                <div class="mt-3 text-left sm:mt-5 border-y border-gray-200 pt-4 pb-6 text-base text-gray-500 space-y-3 px-3">
                   <p>
-                    This tool makes it easy to test one of Argon's most fundamental mechanisms: Liquid Locking. 
+                    Argon is the first crypto asset with an ability to remain stable without requiring off-chain collateral or centralized authorities. Instead, it 
+                    leverages the volatility of Bitcoin to create a wall of shorts against the Argon. These shorts are created through a process of placing 
+                    bitcoins into Argon Stabilization Vaults. It's called Liquid Locking, and it ensures that Argon's price cannot fall without enormous profit 
+                    incentives being created for vaulted bitcoin owners on the other side of the trade.
                   </p>
                   <p>
-                    Liquid Locking is the process of 
-                    securing your bitcoin in an Argon Vault, which also hedges your bitcoin against any loss in value. In return, your
-                    locked bitcoins anchor a stablization mechanism for the Argon currency, without altering the custody of your bitcoin.
-                    (<a href="https://sam.argonprotocol.org" target="_blank" class="text-blue-600 underline">explore our Stabilization Analysis Model</a>).
+                    This simulation engine allows you to explore these profit incentives through fifteen years of Bitcoin pricing history. It answers two 
+                    fundamental questions:
                   </p>
 
+                  <ol class="list-decimal list-inside pl-5 space-y-3">
+                    <li>Why would someone place their bitcoin into Argon Stabilization Vaults?</li>
+                    <li>What will happen to vaulted bitcoins if Argon's price collapses into a death spiral?</li>
+                  </ol>
                   <p>
-                    Liquid Locking is similar in concept to Liquid Staking used by Ethereum and other PoS blockchains with respect to generating yield. The main difference
-                    is that Liquid Staking is used to secure mining positions while Liquid Locking enables currency stabilization.
+                    We recommend first-timers <a @click="startTour">Take the Tour</a>. You can also 
+                    <a @click="openVideoOverlay">watch our Who Is the Loser video</a>, 
+                    <a @click="openWhitepapersOverlay">read our Whitepapers</a>, explore 
+                    <a @click="openFaqOverlay">Frequently Asked Questions</a>, or 
+                    learn <a @click="openMoreLiquidLocking">more about Liquid Locking</a>.
                   </p>
-
-                  <p>Use this tool to explore how vaulting your Bitcoin compares with hodling. Select any timeframe over the last fifteen years to see how your returns would have looked based on actual data from that time period.</p>
 
                 </div>
               </div>
-              <div class="flex justify-end px-3">
-                <button ref="nextButtonRef" type="button" class="rounded-md bg-[#E6EAF3] border border-[#969AA5] px-8 py-2 mt-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-fuchsia-600 hover:border-fuchsia-800 hover:text-white focus:outline-none focus:ring-1 focus:ring-inset focus:ring-fuchsia-500" @click="nextStep">Let's Go</button>
+              <div class="flex justify-end px-3 space-x-4">
+                <button ref="nextButtonRef" type="button" class="rounded-md bg-[#E6EAF3] border border-[#969AA5] px-8 py-2 mt-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-200 hover:border-slate-600 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-fuchsia-500" @click="close">Close Overlay</button>
+                <button ref="nextButtonRef" type="button" class="rounded-md border px-8 py-2 mt-4 text-sm font-semibold shadow-sm text-white border-fuchsia-800 bg-fuchsia-600 hover:bg-fuchsia-500 hover:border-fuchsia-900 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-fuchsia-500" @click="startTour">
+                  Take the Tour
+                  <ChevronDoubleRightIcon class="w-4 h-4 inline-block relative top-[-1px]" />
+                </button>
               </div>
             </DialogPanel>
           </TransitionChild>
@@ -47,13 +60,50 @@
 <script setup lang="ts">
 import * as Vue from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import { ChevronDoubleRightIcon } from '@heroicons/vue/24/outline'
+import { storeToRefs } from 'pinia';
+import { useBasicStore } from '../store';
+import emitter from '../emitters/basic';
 
-const open = Vue.ref(true);
+const basicStore = useBasicStore();
+const { tourStep, finishedWelcomeOverlay } = storeToRefs(basicStore);
+
+const isOpen = Vue.ref(true);
 const nextButtonRef = Vue.ref<HTMLElement | null>(null);
 
-function nextStep() {
-  open.value = false;
+function close() {
+  isOpen.value = false;
+  finishedWelcomeOverlay.value = true;
 }
+
+function startTour() {
+  tourStep.value = 1;
+  isOpen.value = false;
+}
+
+function openVideoOverlay() {
+  isOpen.value = false;
+  emitter.emit('openVideoOverlay');
+}
+
+function openWhitepapersOverlay() {
+  isOpen.value = false;
+  emitter.emit('openWhitepapersOverlay');
+}
+
+function openFaqOverlay() {
+  isOpen.value = false;
+  emitter.emit('openFaqOverlay');
+}
+
+function openMoreLiquidLocking() {
+  isOpen.value = false;
+  emitter.emit('openMoreLiquidLocking');
+}
+
+emitter.on('openWelcomeOverlay', () => {
+  isOpen.value = true;
+});
 
 Vue.onMounted(() => {
   Vue.nextTick(() => {
@@ -61,3 +111,10 @@ Vue.onMounted(() => {
   });
 });
 </script>
+
+<style lang="scss" scoped>
+a {
+  @apply text-fuchsia-600 hover:text-fuchsia-500 underline decoration-dashed;
+  cursor: pointer;
+}
+</style>

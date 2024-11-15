@@ -1,7 +1,7 @@
 <template>
-<div class="inline-block">
-  <Popover v-if="['number', 'percent'].includes(props.type)" v-slot="{ open: isOpen }" ref="elementRef" class="relative inline-block">
-    <PopoverButton class="inline-block">
+<div class="EditorButton Component inline-block" ref="elementRef" >
+  <Popover v-if="['number', 'percent'].includes(props.type)" v-slot="{ open: isOpen }" class="relative inline-block">
+    <PopoverButton as="div" class="inline-block">
       <div v-if="props.type === 'number'" EditButton :class="{ 'showingOverlay': isOpen }" class="inline-block">
         {{ props.label || props.modelValue }}
       </div>
@@ -46,7 +46,7 @@
           </div>
           <div class="mt-5 flex flex-row">
             <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto" @click="cancel(close)" ref="cancelButtonRef">Cancel</button>
-            <button type="button" class="inline-flex w-full justify-center rounded-md border border-fuchsia-800 bg-fuchsia-600 px-5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-fuchsia-500 sm:ml-3 sm:w-auto" @click="save(close)">Save</button>
+            <button type="button" class="inline-flex w-full justify-center rounded-md border px-5 py-1.5 text-sm font-semibold shadow-sm text-white border-fuchsia-800 bg-fuchsia-600 hover:bg-fuchsia-500 sm:ml-3 sm:w-auto" @click="save(close)">Save</button>
           </div>
 
         </div>
@@ -161,7 +161,8 @@ Vue.onBeforeUnmount(() => {
 
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
+.EditorButton.Component {
   [EditButton] {
     @apply px-2 mx-0.5 text-sm py-0.5 bg-slate-400/20 hover:bg-slate-200/100 rounded border border-slate-400 font-mono cursor-pointer;
     box-shadow: inset 1px 1px 0 0 rgba(255, 255, 255, 0.75);
@@ -170,4 +171,10 @@ Vue.onBeforeUnmount(() => {
       box-shadow: inset 1px 1px 1px 0 rgba(0, 0, 0, 0.15);
     }
   }
+
+  .vc-container .vc-day-content.vc-focusable.vc-focus.vc-attr.vc-highlight-content-solid.vc-blue {
+    background: rgb(192 38 211);
+  }
+}
+
 </style>

@@ -18,23 +18,20 @@
           <div class="flex flex-row justify-between relative min-w-[80%] divide-x divide-slate-600/20 py-1">
             <div class="absolute left-0 -top-12 right-0 bottom-0 -z-1 bg-[#F8FAFF] rounded border-[1px] border-slate-800/20 shadow"></div>
             <div class="flex flex-col items-center justify-center min-w-[20%] py-2 px-10" insightId="ratchets" @mouseenter="showInsight" @mouseleave="hideInsight">
-              <div :style="{ opacity: ratchetCountChange.isActive ? 1 : 0 }" :class="{ 'bg-green-200/50': ratchetCountChange.change > 0, 'bg-red-200/50': ratchetCountChange.change < 0 }" class="absolute left-1 top-0 right-1 bottom-0 -z-1 transition-opacity ease-in-out duration-1000"></div>
               <div class="text-xl font-bold">{{ addCommas(vaultStats.ratchetCount) }}</div>
               <div class="text-slate-500/70 whitespace-nowrap">Ratchet{{ vaultStats.ratchetCount === 1 ? '' : 's' }}</div>
             </div>
             <div class="relative flex flex-col items-center justify-center min-w-[20%] py-2 px-10" insightId="shorts" @mouseenter="showInsight" @mouseleave="hideInsight">
-              <div :style="{ opacity: shortCountChange.isActive ? 1 : 0 }" :class="{ 'bg-green-200/50': shortCountChange.change > 0, 'bg-red-200/50': shortCountChange.change < 0 }" class="absolute left-1 top-0 right-1 bottom-0 -z-1 transition-opacity ease-in-out duration-1000"></div>
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">+</div>
               <div class="text-xl font-bold">{{ addCommas(vaultStats.shortCount) }}</div>
               <div class="text-slate-500/70 whitespace-nowrap">Short Cover{{ vaultStats.shortCount === 1 ? '' : 's' }}</div>
             </div>
             <div class="relative flex flex-col items-center justify-center min-w-[30%] py-2 px-1" insightId="cashUnlocked" @mouseenter="showInsight" @mouseleave="hideInsight">
-              <div :style="{ opacity: cashUnlockedChange.isActive ? 1 : 0 }" :class="{ 'bg-green-200/50': cashUnlockedChange.change > 0, 'bg-red-200/50': cashUnlockedChange.change < 0 }" class="absolute left-1 top-0 right-1 bottom-0 -z-1 transition-opacity ease-in-out duration-1000"></div>
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">=</div>
               <div class="text-xl font-bold">${{ formatShorthandNumber(vaultStats.cashUnlocked) }}</div>
               <div class="text-slate-500/70 whitespace-nowrap">Accrued Cash</div>
             </div>
-            <div class="relative flex flex-col items-center justify-center min-w-[30%] py-2 px-1" insightId="vaulterReturns" align="grandparent" @mouseenter="showInsight" @mouseleave="hideInsight">
+            <div class="relative flex flex-col items-center justify-center min-w-[30%] py-2 px-1" insightId="vaulterReturns" align="grandparent" @mouseenter="showInsight" @mouseleave="hideInsight" @click="toggleInsightToStick">
               <div :style="{ opacity: vaulterProfitChange.isActive ? 1 : 0 }" :class="{ 'bg-green-200/50': vaulterProfitChange.change > 0, 'bg-red-200/50': vaulterProfitChange.change < 0 }" class="absolute left-1 top-0 right-1 bottom-0 -z-1 transition-opacity ease-in-out duration-1000"></div>
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">=</div>
               <div :class="{ 'text-green-700': vaultStats.vaulterProfit > 0, 'text-red-600': vaultStats.vaulterProfit < 0 }" class="text-xl font-bold">
@@ -49,7 +46,7 @@
           </div>
           <div class="flex flex-col relative min-w-[20%]">
             <div class="absolute left-0 -top-12 right-0 bottom-0 -z-1 bg-[#F8FAFF] rounded border-[1px] border-slate-800/20 shadow"></div>
-            <div class="relative flex flex-col items-center justify-center py-2 my-1" insightId="hodlerReturns" align="grandparent" @mouseenter="showInsight" @mouseleave="hideInsight">
+            <div class="relative flex flex-col items-center justify-center py-2 my-1" insightId="hodlerReturns" align="grandparent" @mouseenter="showInsight" @mouseleave="hideInsight" @click="toggleInsightToStick">
               <div :style="{ opacity: hodlerProfitChange.isActive ? 1 : 0 }" :class="{ 'bg-green-200/50': hodlerProfitChange.change > 0, 'bg-red-200/50': hodlerProfitChange.change < 0 }" class="absolute left-1 top-0 right-1 bottom-0 -z-1 transition-opacity ease-in-out duration-1000"></div>
               <div class="absolute left-[-1px] top-3 font-bold -translate-x-1/2 bg-[#F8FAFF] border-[1px] border-slate-600/20 px-2 -py-2 rounded">vs</div>
               <div :class="{ 'text-green-700': vaultStats.hodlerProfit > 0, 'text-red-600': vaultStats.hodlerProfit < 0 }" class="text-xl font-bold text-center w-full">
@@ -65,21 +62,33 @@
         </div>
       </div>
     </div>
-    <div class="flex flex-row w-1/3 space-x-1 items-center divide-x-2 pr-4 justify-end">      
+    <div class="flex flex-row w-1/3 space-x-1 items-center divide-x-1 pr-4 justify-end">      
+
       <div class="px-1">
-        <div @click="downloadRawData" class="IconWrapper" insightId="download" align="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+        <div @click="resetConfig" class="IconWrapper" @mouseenter="showTooltip($event, 'Reset Config')" @mouseleave="hideTooltip">
+          <ResetOutlined OutlineIcon class="h-[24px]" />
+          <ResetSolid SolidIcon class="h-[24px]" />
+        </div>
+      </div>
+
+      <div class="px-1">
+        <div @click="downloadRawData" class="IconWrapper" @mouseenter="showTooltip($event, 'Download')" @mouseleave="hideTooltip">
           <DownloadOutlined OutlineIcon class="h-[24px]" />
           <DownloadSolid SolidIcon class="h-[24px]" />
         </div>
       </div>
+      
       <div class="px-1 cursor-pointer">
-        <a @click="openTheKeyOverlay" class="IconWrapper" insightId="information" align="right" @mouseenter="showInsight" @mouseleave="hideInsight">
-          <InformationOutlined OutlineIcon class="w-[24px]" />
-          <InformationSolid SolidIcon class="w-[24px]" />
-        </a>
+        <div @click="openVideoOverlay" class="IconWrapper" @mouseenter="showTooltip($event, 'Watch Video')" @mouseleave="hideTooltip">
+          <PlayOutlined OutlineIcon class="w-[24px]" />
+          <PlaySolid SolidIcon class="w-[24px]" />
+        </div>
       </div>
+
+      <MoreInfoMenu ref="moreInfoMenuRef" />
+
       <div class="px-1 cursor-pointer">
-        <a class="IconWrapper"href="https://github.com/argonprotocol/bvm" target="_blank" insightId="github" align="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+        <a class="IconWrapper"href="https://github.com/argonprotocol/llb" target="_blank" @mouseenter="showTooltip($event, 'GitHub Repo')" @mouseleave="hideTooltip">
           <GithubOutlined OutlineIcon class="h-[24px]" @click="" />
           <GithubSolid SolidIcon class="h-[24px]" />
         </a>
@@ -99,29 +108,81 @@ import GithubSolid from '@/assets/github-solid.svg';
 import Logo from '@/assets/logo.svg';
 import { useBasicStore } from '../store';
 import { formatChangePct, addCommas, formatShorthandNumber } from '../lib/BasicUtils';
-import InformationOutlined from '@/assets/information-outlined.svg';
-import InformationSolid from '@/assets/information-solid.svg';
 import emitter from '../emitters/basic';
 import Download from '../lib/Download';
-import * as InsightOverlay from '../lib/InsightUtils';
+import * as InsightUtils from '../lib/InsightUtils';
+import * as TooltipUtils from '../lib/TooltipUtils';
 import Vault from '../lib/Vault';
 import ArrowUpIcon from '@/assets/arrow-up.svg';
 import ArrowDownIcon from '@/assets/arrow-down.svg';
+import PlayOutlined from '@/assets/play-outlined.svg';
+import PlaySolid from '@/assets/play-solid.svg';
+import MoreInfoMenu from './MoreInfoMenu.vue';
+import ResetOutlined from '@/assets/reset-outlined.svg';
+import ResetSolid from '@/assets/reset-solid.svg';
 
 const basicStore = useBasicStore();
 const { vaultStats, bitcoinCount, sliderDates, isLoaded, vault } = storeToRefs(basicStore);
 
 const scoreboardRef = Vue.ref<HTMLElement | null>(null);
+const moreInfoMenuRef = Vue.ref<typeof MoreInfoMenu | null>(null);
+
+basicStore.registerPositionCheck('scoreboard', () => {
+  return scoreboardRef.value?.getBoundingClientRect() || { left: 0, top: 0, right: 0, bottom: 0 } as DOMRect;
+});
+
+basicStore.registerPositionCheck('informationIcon', () => {
+  const buttonElem = moreInfoMenuRef.value?.$menuButtonElem as HTMLElement;
+  console.log(moreInfoMenuRef.value);
+  return buttonElem?.getBoundingClientRect() || { left: 0, top: 0, right: 0, bottom: 0 } as DOMRect;
+});
+
+function resetConfig() {
+  emitter.emit('openConfirmConfigReset');
+}
+
+function openVideoOverlay(closeFn?: () => void) {
+  emitter.emit('openVideoOverlay');
+  closeFn?.();
+}
 
 function downloadRawData() {
   new Download(vault.value).run();
 }
 
-function openTheKeyOverlay() {
-  emitter.emit('openTheKeyOverlay');
+function showTooltip(event: MouseEvent, label: string) {
+  TooltipUtils.showTooltip(event, label);
+}
+
+function hideTooltip(event: MouseEvent, forceHide = false) {
+  TooltipUtils.hideTooltip();
+}
+
+const insightIdToStick = Vue.ref<string | null>(null);
+
+function toggleInsightToStick(event: MouseEvent) {
+  if (insightIdToStick.value) {
+    insightIdToStick.value = null;
+    emitter.emit('unstickInsight');
+    return;
+  } 
+
+  const targetElem = event.currentTarget as HTMLElement;
+  if (!targetElem) return;
+
+  const id = targetElem.getAttribute('insightId') || '';
+  insightIdToStick.value = id;
+
+  emitter.emit('stickInsight');
 }
 
 function showInsight(event: MouseEvent) {
+  hideInsight(event, true);
+
+  if (moreInfoMenuRef.value?.$menuElem) {
+    moreInfoMenuRef.value.$menuButtonElem.click();
+  }
+
   const targetElem = event.currentTarget as HTMLElement;
   if (!targetElem) return;
 
@@ -151,11 +212,18 @@ function showInsight(event: MouseEvent) {
     );
   }
 
-  InsightOverlay.showInsight(event, data);
+  InsightUtils.showInsight(event, data, insightIdToStick.value === id);
 }
 
-function hideInsight(event: MouseEvent) {
-  InsightOverlay.hideInsight();
+function hideInsight(event: MouseEvent, forceHide = false) {
+  const targetElem = event.currentTarget as HTMLElement;
+  if (!targetElem) return;
+
+  const id = targetElem.getAttribute('insightId') || '';
+  if (!forceHide && id === insightIdToStick.value) return;
+  if (forceHide) insightIdToStick.value = null;
+
+  InsightUtils.hideInsight();
 }
 
 function displayChange(newValue: number | undefined, oldValue: number | undefined) {
@@ -173,15 +241,9 @@ function displayChange(newValue: number | undefined, oldValue: number | undefine
   }
 }
 
-const ratchetCountChange = Vue.ref<any>({});
-const shortCountChange = Vue.ref<any>({});
-const cashUnlockedChange = Vue.ref<any>({});
 const vaulterProfitChange = Vue.ref<any>({});
 const hodlerProfitChange = Vue.ref<any>({});
 
-// Vue.watch(() => vaultStats.value.ratchetCount, displayChange.bind(ratchetCountChange));
-// Vue.watch(() => vaultStats.value.shortCount, displayChange.bind(shortCountChange));
-// Vue.watch(() => vaultStats.value.cashUnlocked, displayChange.bind(cashUnlockedChange));
 Vue.watch(() => vaultStats.value.vaulterProfit, displayChange.bind(vaulterProfitChange));
 Vue.watch(() => vaultStats.value.hodlerProfit, displayChange.bind(hodlerProfitChange));
 </script>
