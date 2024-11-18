@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute z-[2000] w-full max-w-[48rem]" :style="{ left: left, top: '20%' }">
+  <div class="absolute z-[2001] w-full max-w-[48rem]" :style="{ left: left, top: '20%' }">
     
     <div Arrow ref="arrowRef" class="absolute left-0 top-[23%] translate-y-[50%] -translate-x-4 -rotate-90 z-1">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">

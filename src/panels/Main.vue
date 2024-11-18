@@ -1,7 +1,27 @@
 <template>
   <div ref="componentElement" class="Main Component relative pt-2 -mt-2 h-full flex flex-col select-none">
     <div class="h-full flex flex-col relative">
-      <div class="absolute left-20 top-[20%] flex flex-col z-[1100] min-w-[30%] xl:min-w-[35%] pb-20">
+      <div class="grow relative">
+        <ChartBg />
+        <Chart ref="chartRef" :disableTooltip="isDragging">          
+          <div v-if="ratchetToHighlight.isActive" :style="`left: ${ratchetToHighlight.left}px; top: ${ratchetToHighlight.top}px; height: ${ratchetToHighlight.height}px`" class="absolute font-bold text-slate-400 -translate-x-1/2">
+            <LockIcon Icon class="w-4 h-4 relative z-30" />
+            <div VerticalLine class="absolute left-1/2 top-6 bottom-0 w-[1px]"></div>
+          </div>
+
+          <div v-if="shortToHighlight.isActive" :style="`left: ${shortToHighlight.left}px; top: ${shortToHighlight.top}px; height: ${shortToHighlight.height}px`" class="absolute font-bold text-slate-400 -translate-x-1/2">
+            <ArgonIcon Icon class="w-6 h-6 relative z-30" />
+            <div VerticalLine class="absolute left-1/2 top-7 bottom-0 w-[1px]"></div>
+          </div>
+        </Chart>
+        <NibSlider ref="nibSliderLeftRef" @mousedown="startDrag('left', $event)" @touchstart="startDrag('left', $event)" position="left" :pos="sliderLeftPosX" :isActive="nibsActive.left || highlightStart" />
+        <NibSlider ref="nibSliderRightRef" @mousedown="startDrag('right', $event)" @touchstart="startDrag('right', $event)" position="right" :pos="sliderRightPosX" :isActive="nibsActive.right || highlightEnd" />
+        
+        <ChartMarker direction="left" v-if="tourStep !== 1 || hasDraggedSlider" :config="chartMarkerLeft" />
+        <ChartMarker direction="right" :config="chartMarkerRight" />
+      </div>
+    
+      <div class="absolute left-20 top-[20%] flex flex-col min-w-[30%] xl:min-w-[35%] pb-20">
         
         <div ref="configSectionRef" class="relative">
           <section class="divide-y divide-slate-400/40 border-b border-slate-400/40 whitespace-nowrap uppercase text-sm">
@@ -91,28 +111,6 @@
         </div>
       </div>
 
-      <div class="grow relative">
-        <NibSlider ref="nibSliderLeftRef" @mousedown="startDrag('left', $event)" @touchstart="startDrag('left', $event)" position="left" :pos="sliderLeft" :isActive="nibsActive.left || highlightStart" />
-        <NibSlider ref="nibSliderRightRef" @mousedown="startDrag('right', $event)" @touchstart="startDrag('right', $event)" position="right" :pos="sliderRight" :isActive="nibsActive.right || highlightEnd" />
-        
-        <ChartMarker direction="left" v-if="tourStep !== 1" :config="chartMarkerLeft" class="z-[1000]" />
-        <ChartMarker direction="right" :config="chartMarkerRight" class="z-[1000]" />
-
-        <ChartBg />
-        <Chart ref="chartRef" :disableTooltip="isDragging">
-          
-          <div v-if="ratchetToHighlight.isActive" :style="`left: ${ratchetToHighlight.left}px; top: ${ratchetToHighlight.top}px; height: ${ratchetToHighlight.height}px`" class="absolute font-bold text-slate-400 -translate-x-1/2">
-            <LockIcon Icon class="w-4 h-4 relative z-30" />
-            <div VerticalLine class="absolute left-1/2 top-6 bottom-0 w-[1px]"></div>
-          </div>
-
-          <div v-if="shortToHighlight.isActive" :style="`left: ${shortToHighlight.left}px; top: ${shortToHighlight.top}px; height: ${shortToHighlight.height}px`" class="absolute font-bold text-slate-400 -translate-x-1/2">
-            <ArgonIcon Icon class="w-6 h-6 relative z-30" />
-            <div VerticalLine class="absolute left-1/2 top-7 bottom-0 w-[1px]"></div>
-          </div>
-        </Chart>
-      </div>
-    
     </div>
     <ConfirmShortRemoval />
     <AddShort />
@@ -152,7 +150,7 @@ dayjs.extend(utc);
 
 const basicStore = useBasicStore();
 const { btcPrices, btcFees } = basicStore;
-const { sliderIndexes, sliderDates, sliderLeft, sliderRight, ratchetPct, bitcoinCount, vault, tourStep } = storeToRefs(basicStore);
+const { sliderIndexes, sliderDates, ratchetPct, bitcoinCount, vault, tourStep, shorts } = storeToRefs(basicStore);
 
 const chartRef = Vue.ref<typeof Chart | null>(null);
 const chartMarkerLeft = Vue.ref({ left: 0, top: 0, opacity: 0, item: {} as any });
@@ -162,6 +160,9 @@ const isDragging = Vue.ref(false);
 const componentElement = Vue.ref(null);
 
 let dragMeta: any = {};
+let lastNibSliderPosition = { left: 0, top: 0, right: 0, bottom: 0 } as DOMRect;
+
+const hasDraggedSlider = Vue.ref(false);
 
 const nibsActive = Vue.ref({ left: false, right: false });
 
@@ -169,10 +170,6 @@ const purchasePrice = Vue.ref(0);
 
 const actions = Vue.ref<IAction[]>([]);
 
-const shorts: Vue.Ref<IShort[]> = Vue.ref([
-  { date: dayjs.utc('2022-01-18'), lowestPrice: 0.46 },
-  { date: 'EXIT', lowestPrice: 0.001 },
-]);
 const activeShorts = Vue.computed(() => shorts.value.filter((s: IShort) => {
   return s.date === 'EXIT' || (s.date.isAfter(sliderDates.value.left) && s.date.isBefore(sliderDates.value.right));
 }));
@@ -183,11 +180,34 @@ const configSectionRef = Vue.ref<HTMLElement | null>(null);
 const nibSliderLeftRef = Vue.ref<HTMLElement | null>(null);
 const nibSliderRightRef = Vue.ref<HTMLElement | null>(null);
 
+const sliderLeftPosX = Vue.ref(0);
+const sliderRightPosX = Vue.ref(0);
+
+const shortToHighlight = Vue.ref({
+  isActive: false,
+  left: 0,
+  top: 0,
+  height: 0,
+});
+
+const highlightStart = Vue.ref(false);
+const highlightEnd = Vue.ref(false);
+const ratchetToHighlight = Vue.ref({
+  isActive: false,
+  left: 0,
+  top: 0,
+  height: 0,
+});
+
 basicStore.registerPositionCheck('configSection', () => {
   return configSectionRef.value?.getBoundingClientRect() || { left: 0, top: 0, right: 0, bottom: 0 } as DOMRect;
 });
 
 basicStore.registerPositionCheck('nibSliders', () => {
+  if (hasDraggedSlider.value && lastNibSliderPosition.left) {
+    return lastNibSliderPosition;
+  }
+
   const nibSliderLeftElem = nibSliderLeftRef.value?.$el as HTMLElement;
   const nibSliderRightElem = nibSliderRightRef.value?.$el as HTMLElement;
 
@@ -197,12 +217,14 @@ basicStore.registerPositionCheck('nibSliders', () => {
   const nibSliderRightRect = nibSliderRightElem.getBoundingClientRect();
   const bottom = window.innerHeight;
   
-  return {
+  lastNibSliderPosition = {
     left: nibSliderLeftRect.left,
     top: Math.max(nibSliderLeftRect.top, nibSliderRightRect.top),
     right: nibSliderRightRect.right,
     bottom: bottom,
   } as DOMRect;
+
+  return lastNibSliderPosition;
 });
 
 function openVideo() {
@@ -250,11 +272,13 @@ function sortShorts() {
     if (b.date === 'EXIT') return -1;
     return dayjs(a.date).isBefore(dayjs(b.date)) ? -1 : 1;
   });
+  basicStore.setConfig({ shorts: shorts.value });
 }
 
 function confirmShortRemoval(short: any) {
   const handlerFn = function(x: any) {
     shorts.value = shorts.value.filter((s: any) => s.date !== x.date);
+    basicStore.setConfig({ shorts: shorts.value });
     emitter.off('removeShortConfirmed', handlerFn);
     runVault();
   }
@@ -296,7 +320,7 @@ function updateRightSliderDate(date: Date) {
 }
 
 function startDrag(side: 'left' | 'right', event: MouseEvent | TouchEvent) { 
-  const elementLeftPos = side === 'left' ? sliderLeft.value : sliderRight.value;
+  const elementLeftPos = side === 'left' ? sliderLeftPosX.value : sliderRightPosX.value;
   const otherSide = side === 'left' ? 'right' : 'left';
 
   isDragging.value = true;
@@ -334,16 +358,16 @@ function onDrag(event: MouseEvent | TouchEvent) {
   if (dragMeta.isDraggingBoth) {
     const indexDiff = currentIndex - dragMeta.startIndex;
     if (dragMeta.side === 'left') {
-      updateLeftSlider(dragMeta.startIndex + indexDiff);
-      updateRightSlider(dragMeta.startIndexOther + indexDiff);
+      updateLeftSlider(dragMeta.startIndex + indexDiff, true);
+      updateRightSlider(dragMeta.startIndexOther + indexDiff, true);
     } else {
-      updateLeftSlider(dragMeta.startIndexOther + indexDiff);
-      updateRightSlider(dragMeta.startIndex + indexDiff);
+      updateLeftSlider(dragMeta.startIndexOther + indexDiff, true);
+      updateRightSlider(dragMeta.startIndex + indexDiff, true);
     }
   } else if (dragMeta.side === 'left') {
-    updateLeftSlider(currentIndex);
+    updateLeftSlider(currentIndex, true);
   } else {
-    updateRightSlider(currentIndex);
+    updateRightSlider(currentIndex, true);
   }
   runVault();
 }
@@ -358,16 +382,16 @@ function stopDrag(event: MouseEvent | TouchEvent) {
   if (dragMeta.isDraggingBoth) {
     const indexDiff = currentIndex - dragMeta.startIndex;
     if (dragMeta.side === 'left') {
-      updateLeftSlider(dragMeta.startIndex + indexDiff);
-      updateRightSlider(dragMeta.startIndexOther + indexDiff);
+      updateLeftSlider(dragMeta.startIndex + indexDiff, true);
+      updateRightSlider(dragMeta.startIndexOther + indexDiff, true);
     } else {
-      updateLeftSlider(dragMeta.startIndexOther + indexDiff);
-      updateRightSlider(dragMeta.startIndex + indexDiff);
+      updateLeftSlider(dragMeta.startIndexOther + indexDiff, true);
+      updateRightSlider(dragMeta.startIndex + indexDiff, true);
     }
   } else if (dragMeta.side === 'left') {
-    updateLeftSlider(currentIndex);
+    updateLeftSlider(currentIndex, true);
   } else {
-    updateRightSlider(currentIndex);
+    updateRightSlider(currentIndex, true);
   }
   runVault();
 
@@ -400,17 +424,18 @@ function updateNibActiveAfterDrag() {
   }
 }
 
-function updateLeftSlider(index: number) {
+function updateLeftSlider(index: number, wasManuallyMoved: boolean = false) {
+  hasDraggedSlider.value = hasDraggedSlider.value || wasManuallyMoved;
   if (index > sliderIndexes.value.right - 1) return;
 
   index = Math.max(index || 0, 0);
-  sliderIndexes.value.left = index;
+  basicStore.setConfig({ sliderIndexes: { left: index, right: sliderIndexes.value.right } });
 
   const startingItem = chartRef.value?.getItem(index);
   const pointPosition = chartRef.value?.getPointPosition(index);
   
-  sliderLeft.value = pointPosition.x;
-  sliderDates.value.left = startingItem.date;
+  sliderLeftPosX.value = pointPosition.x;
+  basicStore.setConfig({ sliderDates: { left: startingItem.date, right: sliderDates.value.right } });
   
   chartMarkerLeft.value.left = pointPosition.x;
   chartMarkerLeft.value.top = pointPosition.y;
@@ -418,18 +443,19 @@ function updateLeftSlider(index: number) {
   chartMarkerLeft.value.item = startingItem;
 }
 
-function updateRightSlider(index: number) {
+function updateRightSlider(index: number, wasManuallyMoved: boolean = false) {
+  hasDraggedSlider.value = hasDraggedSlider.value || wasManuallyMoved;
   if (index < sliderIndexes.value.left + 1) return;
 
   const maxIndex = chartRef.value?.getItemCount() - 1;
   index = Math.min(index || maxIndex, maxIndex);
-  sliderIndexes.value.right = index;
+  basicStore.setConfig({ sliderIndexes: { right: index, left: sliderIndexes.value.left } });
   
   const endingItem = chartRef.value?.getItem(index);
   const pointPosition = chartRef.value?.getPointPosition(index);
 
-  sliderRight.value = pointPosition.x;
-  sliderDates.value.right = endingItem.date;
+  sliderRightPosX.value = pointPosition.x;
+  basicStore.setConfig({ sliderDates: { left: sliderDates.value.left, right: endingItem.date } });
 
   chartMarkerRight.value.left = pointPosition.x;
   chartMarkerRight.value.top = pointPosition.y;
@@ -444,7 +470,7 @@ function runVault() {
   const startingItem = chartRef.value?.getItem(leftIndex);
   const endingItem = chartRef.value?.getItem(rightIndex);
   
-  bitcoinCount.value = Math.max(Math.round(bitcoinCount.value), 1);
+  basicStore.setConfig({ bitcoinCount: Math.max(Math.round(bitcoinCount.value), 1) });
   purchasePrice.value = startingItem.price * bitcoinCount.value;
   vault.value = new Vault(startingItem.date, endingItem.date, ratchetPct.value, activeShorts.value, btcPrices, btcFees, bitcoinCount.value);
   basicStore.updateVaultStats();
@@ -524,12 +550,12 @@ function handleKeyPress(event: KeyboardEvent) {
   }
 
   if (nibsActive.value.left) {
-    updateLeftSlider(sliderIndexes.value.left + stepsToJump);    
+    updateLeftSlider(sliderIndexes.value.left + stepsToJump, true);    
     wasUpdated = true;
   }
   
   if (nibsActive.value.right) {
-    updateRightSlider(sliderIndexes.value.right + stepsToJump);
+    updateRightSlider(sliderIndexes.value.right + stepsToJump, true);
     wasUpdated = true;
   }
   
@@ -537,13 +563,6 @@ function handleKeyPress(event: KeyboardEvent) {
     runVault();
   }
 }
-
-const shortToHighlight = Vue.ref({
-  isActive: false,
-  left: 0,
-  top: 0,
-  height: 0,
-});
 
 function highlightShort(short: IShort) {   
   const index = short.date === 'EXIT' ? sliderIndexes.value.right : chartRef.value?.getItemIndexFromDate(short.date);
@@ -559,15 +578,6 @@ function highlightShort(short: IShort) {
 function unhighlightShort() {   
   shortToHighlight.value.isActive = false;
 }
-
-const highlightStart = Vue.ref(false);
-const highlightEnd = Vue.ref(false);
-const ratchetToHighlight = Vue.ref({
-  isActive: false,
-  left: 0,
-  top: 0,
-  height: 0,
-});
 
 emitter.on('highlight', (data: any) => {
   if (data.isStart) {
@@ -598,8 +608,9 @@ emitter.on('unhighlight', (data: any) => {
 
 
 Vue.watch(ratchetPct, (newVal: number) => {
-  ratchetPct.value = Math.max(newVal, 0);
-  ratchetPct.value = Math.min(ratchetPct.value, 100);
+  newVal = Math.max(newVal, 0);
+  newVal = Math.min(newVal, 100);
+  basicStore.setConfig({ ratchetPct: newVal });
   runVault();
 });
 

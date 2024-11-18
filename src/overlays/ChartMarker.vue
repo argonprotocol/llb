@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute z-50 pointer-events-none" :style="`left: ${leftPx}px; top: ${topPx}px; opacity: ${config.opacity}`">
+  <div :class="[tourStep === 1 ? 'z-[2000]' : '']" class="absolute pointer-events-none" :style="`left: ${leftPx}px; top: ${topPx}px; opacity: ${config.opacity}`">
     
     <div Arrow ref="arrowRef" :style="{'--tw-rotate': `${rotationDegree}deg`, 'left': `${arrowLeft}px`}" class="relative -translate-y-1/2 -translate-x-1/2 mt-[-0.5px] z-1">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -22,7 +22,12 @@
 import * as Vue from 'vue';
 import dayjs from 'dayjs';
 import dayjsUtc from 'dayjs/plugin/utc';
+import { storeToRefs } from 'pinia';
 import { formatPrice, addCommas } from '../lib/BasicUtils';
+import { useBasicStore } from '../store';
+
+const basicStore = useBasicStore();
+const { tourStep } = storeToRefs(basicStore);
 
 dayjs.extend(dayjsUtc);
 

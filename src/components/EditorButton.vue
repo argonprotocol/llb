@@ -10,7 +10,7 @@
       </div>
     </PopoverButton>
     <transition enter-active-class="transition ease-out duration-150" enter-from-class="opacity-0 -translate-y-10" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition ease-in duration-100" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 -translate-y-10">
-      <PopoverPanel v-slot="{ close }" class="absolute left-0 z-10 mt-3 flex w-screen max-w-max">
+      <PopoverPanel v-slot="{ close }" class="absolute left-0 z-[3000] mt-3 flex w-screen max-w-max">
         <div class="absolute top-0.5 left-4 -translate-x-1/2 -translate-y-full">
           <svg class="relative z-10" width="17" height="11" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 0L24 12H0L12 0Z" fill="white"/>
@@ -174,6 +174,10 @@ Vue.onBeforeUnmount(() => {
 
   .vc-container .vc-day-content.vc-focusable.vc-focus.vc-attr.vc-highlight-content-solid.vc-blue {
     background: rgb(192 38 211);
+  }
+
+  .vc-popover-content-wrapper {
+    z-index: 3000;
   }
 }
 

@@ -1,16 +1,16 @@
 <template>
-  <div Wrapper class="grow h-full flex flex-col relative top-1.5">
+  <div Wrapper class="grow h-full flex flex-col relative">
     <div class="absolute w-full h-full">
       <slot />
       <ChartTooltip :config="tooltipConfig" />
     </div>
 
-    <div ChartWrapper class="grow relative w-full z-20">
+    <div ChartWrapper class="grow relative w-full">
       <canvas id="MyChart" ref="chartRef"></canvas>
     </div>
 
     <div v-if="markerPos.show" StartMarker class="MARKER cursor-pointer" :style="`left: ${markerPos.left}px; top: ${markerPos.top}px`"></div>
-    <XAxis class="relative mb-4 mx-4 -top-1.5" />
+    <XAxis class="relative mb-4 mx-4" />
   </div>
 </template>
 

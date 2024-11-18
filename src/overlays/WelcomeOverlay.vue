@@ -36,7 +36,7 @@
                     <a @click="openVideoOverlay">watch our Who Is the Loser video</a>, 
                     <a @click="openWhitepapersOverlay">read our Whitepapers</a>, explore 
                     <a @click="openFaqOverlay">Frequently Asked Questions</a>, or 
-                    learn <a @click="openMoreLiquidLocking">more about Liquid Locking</a>.
+                    learn <a @click="openDetailsOfLiquidLocking">more about Liquid Locking</a>.
                   </p>
 
                 </div>
@@ -61,23 +61,21 @@
 import * as Vue from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { ChevronDoubleRightIcon } from '@heroicons/vue/24/outline'
-import { storeToRefs } from 'pinia';
 import { useBasicStore } from '../store';
 import emitter from '../emitters/basic';
 
 const basicStore = useBasicStore();
-const { tourStep, finishedWelcomeOverlay } = storeToRefs(basicStore);
 
-const isOpen = Vue.ref(true);
+const isOpen = Vue.ref(false);
 const nextButtonRef = Vue.ref<HTMLElement | null>(null);
 
 function close() {
   isOpen.value = false;
-  finishedWelcomeOverlay.value = true;
+  basicStore.setConfig({ completedWelcome: true });
 }
 
 function startTour() {
-  tourStep.value = 1;
+  basicStore.setConfig({ tourStep: 1 });
   isOpen.value = false;
 }
 
@@ -96,9 +94,9 @@ function openFaqOverlay() {
   emitter.emit('openFaqOverlay');
 }
 
-function openMoreLiquidLocking() {
+function openDetailsOfLiquidLocking() {
   isOpen.value = false;
-  emitter.emit('openMoreLiquidLocking');
+  emitter.emit('openDetailsOfLiquidLocking');
 }
 
 emitter.on('openWelcomeOverlay', () => {

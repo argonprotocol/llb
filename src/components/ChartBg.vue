@@ -1,5 +1,5 @@
 <template>
-  <div ChartBg class="absolute bottom-0 left-0 right-0 h-1/2 z-0"></div>
+  <div ChartBg class="absolute bottom-0 left-0 right-0 h-1/2"></div>
 </template>
 
 <style lang="scss" scoped>
@@ -26,7 +26,6 @@
     width: 100%;
     height: 50%;
     background: linear-gradient(to bottom, rgb(230, 234, 243), rgba(230, 234, 243, 0));
-    z-index: 1;
   }
 }
 </style>

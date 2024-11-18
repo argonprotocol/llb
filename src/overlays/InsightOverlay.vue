@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" :style="{ pointerEvents: isSticky ? 'auto' : 'none', top: top, left: left, width: width, transform: `translate(${translateX}, ${translateY})` }" class="absolute z-[1200] border border-gray-800/20 flex flex-col rounded bg-white px-6 py-2 text-left shadow-lg transition-all">
+  <div v-if="isOpen" :style="{ pointerEvents: isSticky ? 'auto' : 'none', top: top, left: left, width: width, transform: `translate(${translateX}, ${translateY})` }" class="absolute z-[3010] border border-gray-800/20 flex flex-col rounded bg-white px-6 py-2 text-left shadow-lg transition-all">
     
     <div :style="{ left: arrowLeft, top: arrowTop, bottom: arrowBottom, right: arrowRight, rotate: arrowRotate, transform: `translate(${arrowTranslateX}, ${arrowTranslateY})` }" class="absolute">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">

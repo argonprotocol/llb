@@ -47,6 +47,7 @@ export default class Download {
         qtyOfArgonsToBurn,
         costOfArgonsToBurn,
         btcTransactionFee,
+        argonTransactionFee,
         cashChange,
         totalCashUnlocked,
       } = currentVaultAction || {};
@@ -58,6 +59,7 @@ export default class Download {
         btcPrice: price,
         btcChangeSinceLastVault,
         btcTransactionFee,
+        argonTransactionFee,
         actionType: type,
         argonsMinted,
         qtyOfArgonsToBurn,

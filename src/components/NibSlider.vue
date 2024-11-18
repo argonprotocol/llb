@@ -1,6 +1,6 @@
 <template>
-  <ChartOpaque :style="chartOpaqueStyle" class="absolute top-0 bottom-[47px] z-[500]" />
-  <div ref="$el" SelectedLine @mousedown="emitMousedown" @touchstart="emitTouchstart" :style="`left: ${posLeft}px; top: ${posTopPct}%`" :class="lineClasses" class="absolute bottom-3 z-[500] cursor-col-resize">
+  <ChartOpaque :style="chartOpaqueStyle" class="absolute top-0 bottom-[47px]" />
+  <div ref="$el" SelectedLine @mousedown="emitMousedown" @touchstart="emitTouchstart" :style="`left: ${posLeft}px; top: ${posTopPct}%`" :class="lineClasses" class="absolute bottom-3 cursor-col-resize z-1">
     <div class="Selected"></div>
     <div NibWrapper class="absolute left-1/2 bottom-0.5 ml-[1.5px] w-[26.5px] h-6 -translate-x-1/2 translate-y-1/2">
       <TriangleNib class="absolute left-0 bottom-0 w-[24.5px] h-6 cursor-grab" />
@@ -56,7 +56,7 @@ const chartOpaqueStyle = Vue.computed(() => {
   if (props.position === 'left') {
     return { width: `${props.pos - 10}px`, left: '10px' };
   } else {
-    return { left: `${props.pos}px`, right: '0px' };
+    return { left: `${props.pos}px`, right: '10px' };
   }
 });
 

@@ -10,12 +10,12 @@
           <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             
             <DialogPanel class="relative transform rounded-lg bg-white px-3 pb-3 pt-3 text-left shadow-xl transition-all w-full max-w-5xl">
-              <div v-if="!finishedWelcomeOverlay" class="pb-3 border-b border-slate-300">
+              <div v-if="!completedWelcome" class="pb-3 border-b border-slate-300">
                 <div @click="close()" class="inline-block cursor-pointer text-gray-400 hover:text-fuchsia-600">
                   <ArrowLeftIcon class="inline-block w-4 h-4 relative top-[-1.5px]" /> Back to Welcome
                 </div>
               </div>
-              <div v-if="finishedWelcomeOverlay" @click="close()" CloseIcon class="absolute -top-2 -right-2 cursor-pointer flex flex-row items-center space-x-1 border border-slate-400/70 rounded-full p-2 bg-white hover:bg-slate-300 z-1">
+              <div v-if="completedWelcome" @click="close()" CloseIcon class="absolute -top-2 -right-2 cursor-pointer flex flex-row items-center space-x-1 border border-slate-400/70 rounded-full p-2 bg-white hover:bg-slate-300 z-1">
                 <XMarkIcon class="inline-block w-4 h-4" />
               </div>
 
@@ -45,13 +45,13 @@ import { useBasicStore } from '../store';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const basicStore = useBasicStore();
-const { finishedWelcomeOverlay } = storeToRefs(basicStore);
+const { completedWelcome } = storeToRefs(basicStore);
 
 const isOpen = Vue.ref(false);
 
 function close() {
   isOpen.value = false;
-  if (!finishedWelcomeOverlay.value) {
+  if (!completedWelcome.value) {
     emitter.emit('openWelcomeOverlay');
   }
 }

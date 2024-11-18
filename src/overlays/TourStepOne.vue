@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute z-[2000] w-full max-w-[30rem] -translate-x-full" :style="{ left: left, bottom: '3.4%' }">
+  <div class="absolute z-[2001] w-full max-w-[30rem] -translate-x-full" :style="{ left: left, bottom: '3.4%' }">
     
     <div Arrow ref="arrowRef" class="absolute left-full top-1/2 translate-y-[50%] -translate-x-2 rotate-90 z-1">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -43,7 +43,7 @@ import { useBasicStore } from '../store';
 dayjs.extend(dayjsUtc);
 
 const basicStore = useBasicStore();
-const { tourStep, finishedWelcomeOverlay } = storeToRefs(basicStore);
+const { tourStep, completedWelcome } = storeToRefs(basicStore);
 
 const props = defineProps<{
   pos: { left: number, top: number, right: number, bottom: number };
@@ -58,8 +58,8 @@ const nextStep = () => {
 };
 
 const cancelTour = () => {
-  tourStep.value = 0;
-  if (!finishedWelcomeOverlay.value) {
+  basicStore.setConfig({ tourStep: 0 });
+  if (!completedWelcome.value) {
     emitter.emit('openWelcomeOverlay');
   }
 };

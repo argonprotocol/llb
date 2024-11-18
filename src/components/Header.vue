@@ -65,7 +65,7 @@
     <div class="flex flex-row w-1/3 space-x-1 items-center divide-x-1 pr-4 justify-end">      
 
       <div class="px-1">
-        <div @click="resetConfig" class="IconWrapper" @mouseenter="showTooltip($event, 'Reset Config')" @mouseleave="hideTooltip">
+        <div @click="resetConfig" class="IconWrapper" @mouseenter="showTooltip($event, 'Reset to Default')" @mouseleave="hideTooltip">
           <ResetOutlined OutlineIcon class="h-[24px]" />
           <ResetSolid SolidIcon class="h-[24px]" />
         </div>
@@ -88,7 +88,7 @@
       <MoreInfoMenu ref="moreInfoMenuRef" />
 
       <div class="px-1 cursor-pointer">
-        <a class="IconWrapper"href="https://github.com/argonprotocol/llb" target="_blank" @mouseenter="showTooltip($event, 'GitHub Repo')" @mouseleave="hideTooltip">
+        <a class="IconWrapper"href="https://github.com/argonprotocol/llb" target="_blank" @mouseenter="showTooltip($event, 'Open Codebase')" @mouseleave="hideTooltip">
           <GithubOutlined OutlineIcon class="h-[24px]" @click="" />
           <GithubSolid SolidIcon class="h-[24px]" />
         </a>
@@ -133,7 +133,6 @@ basicStore.registerPositionCheck('scoreboard', () => {
 
 basicStore.registerPositionCheck('informationIcon', () => {
   const buttonElem = moreInfoMenuRef.value?.$menuButtonElem as HTMLElement;
-  console.log(moreInfoMenuRef.value);
   return buttonElem?.getBoundingClientRect() || { left: 0, top: 0, right: 0, bottom: 0 } as DOMRect;
 });
 

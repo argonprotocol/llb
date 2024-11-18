@@ -1,10 +1,13 @@
 import * as Vue from 'vue';
 import { defineStore } from 'pinia'
-import baseRules, { IRules } from './lib/RulesConfig';
 import API from './lib/API';
 import BtcFees from './lib/BtcFees';
 import BtcPrices from './lib/BtcPrices';
-import Vault, { IAction } from './lib/Vault';
+import Vault, { IAction, IShort } from './lib/Vault';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 export type IPanelName =  'runner' | 'base';
 
@@ -16,25 +19,31 @@ export interface IVaultStats {
   hodlerProfit: number;
 }
 
+const config = JSON.parse(sessionStorage.getItem('config') || '{}');
+if (config.shorts) {
+  config.shorts = config.shorts.map((s: any) => ({ date: s.date === 'EXIT' ? s.date : dayjs.utc(s.date), lowestPrice: s.lowestPrice }));
+}
+
 export const useBasicStore = defineStore('help', () => {
+  const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
   const btcPrices = new BtcPrices();
   const btcFees = new BtcFees(btcPrices);
-  const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
-  const tourStep: Vue.Ref<number> = Vue.ref(0);
-  const finishedWelcomeOverlay: Vue.Ref<boolean> = Vue.ref(false);
-
-  const ratchetPct = Vue.ref(10);
-  const bitcoinCount = Vue.ref(1);
-
   const vault = Vue.ref<Vault | null>(null);
-  const rules: Vue.Ref<IRules> = Vue.ref({ ...baseRules });
 
-  const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: 3_698, right: 4_282 });
-  const sliderDates: Vue.Ref<{ left: string, right: string }> = Vue.ref({ left: '2010-08-17', right: '2024-08-26' });
+  const tourStep: Vue.Ref<number> = Vue.ref(config.tourStep || 0);
+  const completedWelcome: Vue.Ref<boolean> = Vue.ref(config.completedWelcome || false);
 
-  const sliderLeft = Vue.ref(0);
-  const sliderRight = Vue.ref(0);
+  const bitcoinCount = Vue.ref(config.bitcoinCount || 1);
+  const ratchetPct = Vue.ref(config.ratchetPct || 10);
 
+  const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: config.sliderIndexes?.left || 3_698, right: config.sliderIndexes?.right || 4_282 });
+  const sliderDates: Vue.Ref<{ left: string, right: string }> = Vue.ref({ left: config.sliderDates?.left || '2010-08-17', right: config.sliderDates?.right || '2024-08-26' });
+
+  const shorts: Vue.Ref<IShort[]> = Vue.ref(config.shorts || [
+    { date: dayjs.utc('2022-01-18'), lowestPrice: 0.46 },
+    { date: 'EXIT', lowestPrice: 0.001 },
+  ]);
+  
   const vaultStats: Vue.Ref<IVaultStats> = Vue.ref({
     ratchetCount: 0,
     shortCount: 0,
@@ -45,6 +54,30 @@ export const useBasicStore = defineStore('help', () => {
 
   const positionChecks: Record<string, () => DOMRect> = {};
 
+  function setConfig(data: any) {
+    tourStep.value = data.tourStep ?? tourStep.value;
+    completedWelcome.value = data.completedWelcome ?? completedWelcome.value;
+    bitcoinCount.value = data.bitcoinCount ?? bitcoinCount.value;
+    ratchetPct.value = data.ratchetPct ?? ratchetPct.value;
+    sliderIndexes.value = data.sliderIndexes ?? sliderIndexes.value;
+    sliderDates.value = data.sliderDates ?? sliderDates.value;
+    shorts.value = data.shorts ?? shorts.value;
+    
+    sessionStorage.setItem('config', JSON.stringify({
+      tourStep: tourStep.value,
+      completedWelcome: completedWelcome.value,
+      bitcoinCount: bitcoinCount.value,
+      ratchetPct: ratchetPct.value,
+      sliderIndexes: sliderIndexes.value,
+      sliderDates: sliderDates.value,
+      shorts: shorts.value.map(s => ({ date: typeof s.date === 'string' ? s.date : s.date.toISOString(), lowestPrice: s.lowestPrice })),
+    }));
+  }
+
+  function resetConfig() {
+    sessionStorage.removeItem('config');
+  }
+  
   function updateVaultStats() {
     if (!vault.value) return;
     vaultStats.value = {
@@ -80,29 +113,26 @@ export const useBasicStore = defineStore('help', () => {
     isLoaded.value = true;
   }
 
-  function resetConfig() {
-
-  }
-
   return { 
     isLoaded, 
     btcPrices, 
     btcFees, 
-    vault,
-    rules, 
-    sliderIndexes, 
-    sliderDates,
-    sliderLeft,
-    sliderRight,
-    vaultStats,
+    vault, 
+
     ratchetPct,
     bitcoinCount,
+
+    sliderIndexes, 
+    sliderDates,
+    shorts,
+    vaultStats,
     tourStep,
-    finishedWelcomeOverlay,
+    completedWelcome,
     loadData, 
     updateVaultStats,
     registerPositionCheck,
     getPositionCheck,
     resetConfig,
+    setConfig,
   }
 });

@@ -14,6 +14,8 @@ export interface IAction {
   costOfArgonsToBurn: number;
   securityFee: number;
   btcTransactionFee: number;
+  argonTransactionFee: number;
+  fees: number;
   cashChange: number;
   totalCashUnlocked: number;
   totalAccruedValue: number;
@@ -106,11 +108,13 @@ export default class Vault {
       const costOfArgonsToBurn = 0;
       const securityFee = startingPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = this.btcFees.getByDate(this.startingDate);
-      const cashChange = (startingPrice * bitcoinCount) - (costOfArgonsToBurn + securityFee + btcTransactionFee);
+      const argonTransactionFee = this.btcFees.getByDate(this.startingDate);
+      const fees = securityFee + btcTransactionFee + argonTransactionFee;
+      const cashChange = (startingPrice * bitcoinCount) - (costOfArgonsToBurn + fees);
 
-      this.hodlerExpenses = securityFee + btcTransactionFee;
+      this.hodlerExpenses = fees;
 
-      this.totalExpenses = securityFee + btcTransactionFee;
+      this.totalExpenses = fees;
       this.totalArgonsMinted = (startingPrice * bitcoinCount);
       this.totalCostOfArgonsToBurn = (costOfArgonsToBurn * bitcoinCount);
       this.totalCashUnlocked = cashChange;
@@ -125,6 +129,8 @@ export default class Vault {
         costOfArgonsToBurn,
         securityFee,
         btcTransactionFee,
+        argonTransactionFee,
+        fees,
         cashChange,
         totalCashUnlocked: this.totalCashUnlocked,
         totalAccruedValue: this.totalAccruedValue,
@@ -160,9 +166,11 @@ export default class Vault {
 
       const securityFee = currentPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = changePct > 0 ? this.btcFees.getByDate(currentDate) : 0;
-      const cashChange = (currentPrice * bitcoinCount) - (costOfArgonsToBurn + securityFee + btcTransactionFee);
+      const argonTransactionFee = this.btcFees.getByDate(currentDate);
+      const fees = securityFee + btcTransactionFee + argonTransactionFee;
+      const cashChange = (currentPrice * bitcoinCount) - (costOfArgonsToBurn + fees);
 
-      this.totalExpenses += securityFee + btcTransactionFee;
+      this.totalExpenses += fees;
       this.totalArgonsMinted += (currentPrice * bitcoinCount);
       this.totalCostOfArgonsToBurn += costOfArgonsToBurn;
       this.totalCashUnlocked += cashChange;
@@ -177,6 +185,8 @@ export default class Vault {
         costOfArgonsToBurn,
         securityFee,
         btcTransactionFee,
+        argonTransactionFee,
+        fees,
         cashChange,
         totalCashUnlocked: this.totalCashUnlocked,
         totalAccruedValue: this.totalAccruedValue,
@@ -203,11 +213,13 @@ export default class Vault {
 
       const securityFee = endingPrice * VAULT_SECURITY_PCT;
       const btcTransactionFee = this.btcFees.getByDate(this.endingDate);
-      const cashChange = -(costOfArgonsToBurn + securityFee + btcTransactionFee);
+      const argonTransactionFee = this.btcFees.getByDate(this.endingDate);
+      const fees = securityFee + btcTransactionFee + argonTransactionFee;
+      const cashChange = -(costOfArgonsToBurn + fees);
 
-      this.hodlerExpenses += securityFee + btcTransactionFee;
+      this.hodlerExpenses += fees;
 
-      this.totalExpenses += securityFee + btcTransactionFee;
+      this.totalExpenses += fees;
       this.totalArgonsMinted += 0;
       this.totalCostOfArgonsToBurn += costOfArgonsToBurn;
       this.totalAccruedValue += (endingPrice * bitcoinCount) + cashChange;
@@ -221,6 +233,8 @@ export default class Vault {
         costOfArgonsToBurn,
         securityFee,
         btcTransactionFee,
+        argonTransactionFee,
+        fees,
         cashChange,
         totalCashUnlocked: this.totalCashUnlocked,
         totalAccruedValue: this.totalAccruedValue,

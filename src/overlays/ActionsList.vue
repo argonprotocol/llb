@@ -29,7 +29,7 @@
                 <td><div>{{ formatLabel(action.type) }}</div></td>
                 <td><div>${{ addCommas(formatPrice(action.price, 0)) }}</div></td>
                 <td><div>
-                  <span v-if="action.btcTransactionFee">${{ addCommas(formatPrice(action.btcTransactionFee + action.securityFee, 2)) }}</span>
+                  <span v-if="action.fees">${{ addCommas(formatPrice(action.fees, 2)) }}</span>
                 </div></td>
                 <td><div>
                   <span v-if="action.cashChange">{{ action.cashChange < 0 ? '-' : '+' }}${{ addCommas(Math.abs(action.cashChange).toFixed(0)) }}</span>
