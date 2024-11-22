@@ -1,6 +1,6 @@
 <template>
   <ChartOpaque :style="chartOpaqueStyle" class="absolute top-0 bottom-[47px]" />
-  <div ref="$el" SelectedLine @mousedown="emitMousedown" @touchstart="emitTouchstart" :style="`left: ${posLeft}px; top: ${posTopPct}%`" :class="lineClasses" class="absolute bottom-3 cursor-col-resize z-1">
+  <div ref="$el" SelectedLine @mousedown="emitMousedown" @touchstart="emitTouchstart" @pointerdown="onPointerDown" @pointerup="onPointerUp" :style="`left: ${posLeft}px; top: ${posTopPct}%`" :class="lineClasses" class="absolute bottom-3 cursor-col-resize z-1">
     <div class="Selected"></div>
     <div NibWrapper class="absolute left-1/2 bottom-0.5 ml-[1.5px] w-[26.5px] h-6 -translate-x-1/2 translate-y-1/2">
       <TriangleNib class="absolute left-0 bottom-0 w-[24.5px] h-6 cursor-grab" />
@@ -22,8 +22,9 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'mousedown', event: MouseEvent): void
-  (e: 'touchstart', event: TouchEvent): void
+  (e: 'pointerdown', event: PointerEvent): void
+  (e: 'pointermove', event: PointerEvent): void
+  (e: 'pointerup', event: PointerEvent): void
 }>();
 
 const $el = Vue.ref<HTMLElement | null>(null);
@@ -60,12 +61,26 @@ const chartOpaqueStyle = Vue.computed(() => {
   }
 });
 
-function emitMousedown(event: MouseEvent) {
-  emit('mousedown', event);
+function onPointerDown(event: PointerEvent) {
+  const elem = $el.value;
+  if (!elem) return;
+
+  elem.onpointermove = emitDrag;
+  elem.setPointerCapture(event.pointerId);
+  emit('pointerdown', event);
 }
 
-function emitTouchstart(event: TouchEvent) {
-  emit('touchstart', event);
+function emitDrag(event: PointerEvent) {
+  emit('pointermove', event);
+}
+
+function onPointerUp(event: PointerEvent) {
+  const elem = $el.value;
+  if (!elem) return;
+
+  elem.onpointermove = null;
+  elem.releasePointerCapture(event.pointerId);
+  emit('pointerup', event);
 }
 
 defineExpose({ $el });

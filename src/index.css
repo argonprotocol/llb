@@ -14,3 +14,17 @@ body {
   box-shadow: 0 0 2px 2px rgba(0,0,0,0.05), inset 2px 2px 0 white;
   border-radius: 2px;
 }
+
+body.isGrabbing {
+  cursor: grabbing !important;
+  div, svg {
+    cursor: grabbing !important;
+  }
+}
+
+body.isResizing {
+  cursor: col-resize !important;
+  div, svg {
+    cursor: col-resize !important;
+  }
+}

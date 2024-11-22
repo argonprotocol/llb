@@ -14,103 +14,105 @@
             <div VerticalLine class="absolute left-1/2 top-7 bottom-0 w-[1px]"></div>
           </div>
         </Chart>
-        <NibSlider ref="nibSliderLeftRef" @mousedown="startDrag('left', $event)" @touchstart="startDrag('left', $event)" position="left" :pos="sliderLeftPosX" :isActive="nibsActive.left || highlightStart" />
-        <NibSlider ref="nibSliderRightRef" @mousedown="startDrag('right', $event)" @touchstart="startDrag('right', $event)" position="right" :pos="sliderRightPosX" :isActive="nibsActive.right || highlightEnd" />
+        <NibSlider ref="nibSliderLeftRef" @pointerdown="startDrag('left', $event)" @pointermove="onDrag('left', $event)" @pointerup="stopDrag('left', $event)" position="left" :pos="sliderLeftPosX" :isActive="nibsActive.left || highlightStart" />
+        <NibSlider ref="nibSliderRightRef" @pointerdown="startDrag('right', $event)" @pointermove="onDrag('right', $event)" @pointerup="stopDrag('right', $event)" position="right" :pos="sliderRightPosX" :isActive="nibsActive.right || highlightEnd" />
         
         <ChartMarker direction="left" v-if="tourStep !== 1 || hasDraggedSlider" :config="chartMarkerLeft" />
         <ChartMarker direction="right" :config="chartMarkerRight" />
       </div>
     
-      <div class="absolute left-20 top-[20%] flex flex-col min-w-[30%] xl:min-w-[35%] pb-20">
-        
-        <div ref="configSectionRef" class="relative">
-          <section class="divide-y divide-slate-400/40 border-b border-slate-400/40 whitespace-nowrap uppercase text-sm">
-            <h3 class="py-1 font-semibold text-base">CONFIGURE YOUR BITCOIN STRATEGY</h3>
-            <div class="group relative py-2 pr-3">
-              You bought 
-              <EditorButton id="bitcoinCount" type="number" v-model="bitcoinCount" @showing="showingEditor" @hiding="hidingEditor" @updated="runVault" />
-              {{ bitcoinCount === 1 ? 'bitcoin' : 'bitcoins' }} on
-              <EditorButton id="dateLeft" type="date" v-model="sliderDates.left" @updated="updateLeftSliderDate" @showing="showingEditor" @hiding="hidingEditor" />
-              for ${{ purchasePrice > 100 ? addCommas(Math.round(purchasePrice)) : purchasePrice.toFixed(2) }}
-              <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
-                <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
-                Set the date when your bitcoin enters the Argon vaults. This determines when the downside risk of your bitcoin is hedged. The quantity or dollar amount of bitcoin does not change your percentage returns.
-              </div>
-            </div>
-            <div class="group relative py-2 pr-3">
-              You hodl your bitcoin{{ bitcoinCount === 1 ? '' : 's' }} until 
-              <EditorButton id="dateRight" type="date" v-model="sliderDates.right" @updated="updateRightSliderDate" @showing="showingEditor" @hiding="hidingEditor" />
-              <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
-                <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
-                Set the date when you pull your bitcoin out of the Argon vaults. This is the date when the final profit calculations are determined.
-              </div>
-            </div>
-            <div class="group relative py-2 pr-3">
-              <template v-if="ratchetPct > 0" >
-                You ratchet whenever Bitcoin's price changes 
-                <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" />
-                or more
-              </template>
-              <template v-else>
-                Ratcheting is
-                <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" label="disabled" />
-              </template>
-              <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
-                <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
-                The lower your ratchet percentage, the tighter your hedge on downside risk, and therefore, the stronger your upside potential. Disable this feature by setting it to zero.
-              </div>
-            </div>
-          </section>
+      <div class="absolute left-20 top-[15%] flex flex-col min-w-[30%] xl:min-w-[35%] pb-20">
+        <div class="relative max-w-[45%]">
+          <p class="text-slate-700/80 text-base font-light text-shadow">
+            <strong class="font-bold">What is Liquid Locking?</strong> Liquid Locking is the process of depositing bitcoins into Argon Stabilization Vaults. In doing so, new argons equal to the value of the bitcoins being vaulted are minted and liquidated into the market. This unlocks cash for the bitcoin holders. It also creates additional profit opportunities such as from bitcoin hedging and covering shorts from argon depegs.
+          </p>
 
-          <section class="mt-4 uppercase text-sm">
-            <h3 class="py-1 font-semibold border-b border-slate-400/40 text-base">
-              <span insightId="addPriceDrop" position="right" @mouseenter="showInsight" @mouseleave="hideInsight">
+          <div ref="configSectionRef" class="absolute top-full translate-y-7 left-0">
+            
+            <section class="divide-y divide-slate-400/40 border-b border-slate-400/40 whitespace-nowrap uppercase text-sm">
+              <h3 class="py-1 font-semibold text-base">CONFIGURE YOUR BITCOIN</h3>
+              <div class="group relative py-2 pr-3">
+                <EditorButton id="bitcoinCount" type="number" v-model="bitcoinCount" @showing="showingEditor" @hiding="hidingEditor" @updated="runVault" />
+                {{ bitcoinCount === 1 ? 'bitcoin was' : 'bitcoins were' }} Bought on
+                <EditorButton id="dateLeft" type="date" v-model="sliderDates.left" @updated="updateLeftSliderDate" @showing="showingEditor" @hiding="hidingEditor" />
+                for ${{ purchasePrice > 100 ? addCommas(Math.round(purchasePrice)) : purchasePrice.toFixed(2) }}
+                <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
+                  <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
+                  Set the date when your bitcoin enters the Argon vaults. This determines when the downside risk of your bitcoin is hedged. The quantity or dollar amount of bitcoin does not change your percentage returns.
+                </div>
+              </div>
+              <div class="group relative py-2 pr-3">
+                The {{ bitcoinCount === 1 ? 'bitcoin is hodled' : 'bitcoins are hodled' }} until 
+                <EditorButton id="dateRight" type="date" v-model="sliderDates.right" @updated="updateRightSliderDate" @showing="showingEditor" @hiding="hidingEditor" />
+                <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
+                  <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
+                  Set the date when you pull your bitcoin out of the Argon vaults. This is the date when the final profit calculations are determined.
+                </div>
+              </div>
+              <div class="group relative py-2 pr-3">
+                <template v-if="ratchetPct > 0" >
+                  Ratcheting is triggered whenever Bitcoin's price changes 
+                  <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" />
+                  or more
+                </template>
+                <template v-else>
+                  Ratcheting is
+                  <EditorButton id="ratchetPct" type="percent" v-model="ratchetPct" @showing="showingEditor" @hiding="hidingEditor" label="disabled" />
+                </template>
+                <div class="hidden group-hover:block absolute -right-14 top-1/2 -translate-y-1/2 translate-x-full text-slate-700/70 w-[300px] whitespace-normal normal-case">
+                  <div InlineInsight class="absolute -left-8 border border-r-0 rounded-l-3xl border-slate-400/40 w-6 -top-5 -bottom-5 "></div>
+                  The lower your ratchet percentage, the tighter your hedge on downside risk, and therefore, the stronger your upside potential. Disable this feature by setting it to zero.
+                </div>
+              </div>
+            </section>
+
+            <section class="mt-4 uppercase text-sm">
+              <h3 class="py-1 font-semibold border-b border-slate-400/40 text-base">
                 CONFIGURE ARGON PRICE DROPS 
                 <span class="text-slate-400/60">(</span>
-                <span @click="addShort" class="text-fuchsia-700 hover:text-fuchsia-500 cursor-pointer mx-1">ADD</span>
+                <span @click="addShort" insightId="addPriceDrop" position="right" @mouseenter="showInsight" @mouseleave="hideInsight" class="text-fuchsia-700 hover:text-fuchsia-500 cursor-pointer px-1">ADD</span>
                 <span class="text-slate-400/60">)</span>
+              </h3>
+              <div v-if="!activeShorts.length" class="border-b border-slate-400/40 py-2 italic text-slate-500/80">
+                No price drops configured
+              </div>
+              <div v-else v-for="short of activeShorts" :key="short.date">
+                <div PriceDrop v-if="short.date === 'EXIT'" class="border-b border-slate-400/40 py-2" @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
+                  Argon collapses to ${{ short.lowestPrice }} on the last day
+                  <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
+                    <TrashIcon class="w-4 h-4" />
+                  </div>
+                </div>
+                <div PriceDrop v-else class="border-b border-slate-400/40 py-2"  @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
+                  On {{ dayjs(short.date).format('MMMM D, YYYY') }} Argon drops from $1.00 to ${{ short.lowestPrice }}
+                  <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
+                    <TrashIcon class="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div class="absolute -bottom-5 flex flex-row space-x-4 whitespace-nowrap translate-y-full">
+              <Popover v-slot="{ open: isOpen }" class="relative">
+                <PopoverButton class="inline-flex items-center gap-x-1 border border-slate-400 text-fuchsia-700 py-1.5 px-6 rounded-md bg-white/50 hover:bg-white/100 focus:outline-none">
+                  <span class="pointer-events-none">Show Vault Activity</span>
+                </PopoverButton>
+                <ActionsList :actions="actions" :buttonSpacing="calculateButtonSpacing(isOpen)" />
+              </Popover>
+
+              <button @click="downloadRawData" class="border border-slate-400 text-fuchsia-700 py-1.5 px-6 rounded-md bg-white/50 hover:bg-white/100">
+                Download Raw Data
+              </button>
+
+              <span VideoLink @click="openVideo" class="text-fuchsia-600 hover:text-fuchsia-500 cursor-pointer flex flex-row items-center pl-1 font-bold">
+                <PlayOutlined OutlineIcon class="w-6 h-6 inline-block" />
+                <PlaySolid SolidIcon class="w-6 h-6 inline-block" />
+                <span class="inline-block underline decoration-dashed decoration-fuchsia-300 underline-offset-4 ml-2">Watch <em class="italic">The Loser</em></span>
               </span>
-            </h3>
-            <div v-if="!activeShorts.length" class="border-b border-slate-400/40 py-2 italic text-slate-500/80">
-              No price drops configured
             </div>
-            <div v-else v-for="short of activeShorts" :key="short.date">
-              <div PriceDrop v-if="short.date === 'EXIT'" class="border-b border-slate-400/40 py-2" @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
-                Argon collapses to ${{ short.lowestPrice }} on the last day
-                <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
-                  <TrashIcon class="w-4 h-4" />
-                </div>
-              </div>
-              <div PriceDrop v-else class="border-b border-slate-400/40 py-2"  @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
-                On {{ dayjs(short.date).format('MMMM D, YYYY') }} Argon drops from $1.00 to ${{ short.lowestPrice }}
-                <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
-                  <TrashIcon class="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <div class="absolute bottom-0 flex flex-row space-x-4 whitespace-nowrap">
-          <Popover v-slot="{ open: isOpen }" class="relative">
-            <PopoverButton class="inline-flex items-center gap-x-1 border border-slate-400 text-fuchsia-700 py-2 px-6 rounded-md bg-white/50 hover:bg-white/100 focus:outline-none">
-              <span class="pointer-events-none">Show Vault Transitions</span>
-            </PopoverButton>
-            <ActionsList :actions="actions" :buttonSpacing="calculateButtonSpacing(isOpen)" />
-          </Popover>
-
-          <button @click="downloadRawData" class="border border-slate-400 text-fuchsia-700 py-2 px-6 rounded-md bg-white/50 hover:bg-white/100">
-            Download Raw Data
-          </button>
-
-          <span VideoLink @click="openVideo" class="text-fuchsia-600 hover:text-fuchsia-500 cursor-pointer flex flex-row items-center pl-1 font-bold">
-            <PlayOutlined OutlineIcon class="w-6 h-6 inline-block" />
-            <PlaySolid SolidIcon class="w-6 h-6 inline-block" />
-            <span class="inline-block underline decoration-dashed decoration-fuchsia-300 underline-offset-4 ml-2">Who Is the Loser?</span>
-          </span>
+          </div>
         </div>
       </div>
-
     </div>
     <ConfirmShortRemoval />
     <AddShort />
@@ -150,7 +152,7 @@ dayjs.extend(utc);
 
 const basicStore = useBasicStore();
 const { btcPrices, btcFees } = basicStore;
-const { sliderIndexes, sliderDates, ratchetPct, bitcoinCount, vault, tourStep, shorts } = storeToRefs(basicStore);
+const { sliderIndexes, sliderDates, ratchetPct, bitcoinCount, vaultSnapshot, tourStep, shorts } = storeToRefs(basicStore);
 
 const chartRef = Vue.ref<typeof Chart | null>(null);
 const chartMarkerLeft = Vue.ref({ left: 0, top: 0, opacity: 0, item: {} as any });
@@ -247,8 +249,9 @@ function hidingEditor() {
   datePickerIsOpen.value = false;
 }
 
-function downloadRawData() {
-  new Download(vault.value).run();
+async function downloadRawData() {
+  await vaultSnapshot.value?.isLoaded;
+  new Download(vaultSnapshot.value).run();
 }
 
 function addShort() {
@@ -319,12 +322,14 @@ function updateRightSliderDate(date: Date) {
   runVault();
 }
 
-function startDrag(side: 'left' | 'right', event: MouseEvent | TouchEvent) { 
+function startDrag(side: 'left' | 'right', event: PointerEvent) { 
   const elementLeftPos = side === 'left' ? sliderLeftPosX.value : sliderRightPosX.value;
   const otherSide = side === 'left' ? 'right' : 'left';
+  const cursor = window.getComputedStyle(event.target as Element).cursor;
+  
+  const startX = event.clientX;
 
   isDragging.value = true;
-  const startX = event.touches ? event.touches[0].clientX : event.clientX;
   dragMeta = {
     side,
     startX,
@@ -339,20 +344,21 @@ function startDrag(side: 'left' | 'right', event: MouseEvent | TouchEvent) {
   updateNibActiveBeforeDrag();
   dragMeta.isDraggingBoth = nibsActive.value.left && nibsActive.value.right;
 
-  document.addEventListener('mousemove', onDrag);
-  document.addEventListener('touchmove', onDrag);
-  document.addEventListener('mouseup', stopDrag);
-  document.addEventListener('touchend', stopDrag);
+  if (cursor === 'grab') {
+    document.body.classList.add('isGrabbing');
+  } else if (cursor === 'col-resize') {
+    document.body.classList.add('isResizing');
+  }
 }
 
-function onDrag(event: MouseEvent | TouchEvent) {
+function onDrag(side: 'left' | 'right', event: PointerEvent) {
   if (!isDragging.value) return;
   hideInsight();
 
-  const rawX = event.touches ? event.touches[0].clientX : event.clientX;
+  const rawX = event.clientX;
   const currentX = rawX + dragMeta.elemOffset;
-  const currentIndex = chartRef.value?.getItemIndexFromEvent(event, { x: currentX });
-  
+  const currentIndex = chartRef.value?.getItemIndexFromEvent(event, { x: currentX });  
+
   dragMeta.wasDragged = dragMeta.wasDragged || (currentIndex !== dragMeta.startIndex);
 
   if (dragMeta.isDraggingBoth) {
@@ -372,10 +378,10 @@ function onDrag(event: MouseEvent | TouchEvent) {
   runVault();
 }
 
-function stopDrag(event: MouseEvent | TouchEvent) {
+function stopDrag(side: 'left' | 'right', event: PointerEvent) {
   isDragging.value = false;
 
-  const rawX = event.touches ? event.touches[0].clientX : event.clientX;
+  const rawX = event.clientX;
   const currentX = rawX + dragMeta.elemOffset;
   const currentIndex = chartRef.value?.getItemIndexFromEvent(event, { x: currentX });
   
@@ -395,10 +401,8 @@ function stopDrag(event: MouseEvent | TouchEvent) {
   }
   runVault();
 
-  document.removeEventListener('mousemove', onDrag);
-  document.removeEventListener('touchmove', onDrag);
-  document.removeEventListener('mouseup', stopDrag);
-  document.removeEventListener('touchend', stopDrag);
+  document.body.classList.remove('isGrabbing');
+  document.body.classList.remove('isResizing');
 
   updateNibActiveAfterDrag();
 }
@@ -472,27 +476,31 @@ function runVault() {
   
   basicStore.setConfig({ bitcoinCount: Math.max(Math.round(bitcoinCount.value), 1) });
   purchasePrice.value = startingItem.price * bitcoinCount.value;
-  vault.value = new Vault(startingItem.date, endingItem.date, ratchetPct.value, activeShorts.value, btcPrices, btcFees, bitcoinCount.value);
-  basicStore.updateVaultStats();
 
-  actions.value = vault.value.actions;
+  basicStore.runVault(startingItem.date, endingItem.date, ratchetPct.value, activeShorts.value, bitcoinCount.value);
+
+  actions.value = vaultSnapshot.value.actions;
 }
 
 function loadChartData() {
-  const priceRecords = btcPrices.all;
-  const allItems: any[] = [];
+  const items: any[] = [];
 
-  for (const [index, priceRecord] of priceRecords.entries()) {
+  for (const [index, priceRecord] of btcPrices.all.entries()) {
     const item = {
       ...priceRecord,
       showPointOnChart: index === 0,
-      previous: priceRecords[index - 1],
-      next: priceRecords[index + 1],
-    };    
-    allItems.push(item);
+      fee: btcFees.getByDate(priceRecord.date),
+      previous: items[index - 1],
+      next: undefined,
+    };
+    items.push(item);
   }
 
-  chartRef.value?.reloadData(allItems);
+  for (const [index, item] of items.entries()) {
+    item.next = items[index + 1];
+  }
+
+  chartRef.value?.reloadData(items);
   updateLeftSlider(sliderIndexes.value.left);
   updateRightSlider(sliderIndexes.value.right);
 }
@@ -522,7 +530,6 @@ function handleKeyPress(event: KeyboardEvent) {
         stepsToJump = newIndex - sliderIndexes.value.left;
       } else if (isRightKey) {
         const spaceBetween = sliderIndexes.value.right - sliderIndexes.value.left;
-        console.log('MAX', spaceBetween);
         let newIndex = chartRef.value?.getNextMonthIndex(sliderIndexes.value.left);
         newIndex = Math.min(newIndex + spaceBetween, maxIndex) - spaceBetween;
         stepsToJump = newIndex - sliderIndexes.value.left;
@@ -627,6 +634,10 @@ Vue.onUnmounted(() => {
 
 <style lang="scss">
 .Main.Component {
+  .text-shadow {
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
   [VerticalLine] {
     box-shadow: 1px 1px 0 0 rgba(255, 255, 255, 0.5);
     background: linear-gradient(to bottom, rgba(71, 85, 105, 0.5) 0%, rgba(71, 85, 105, 0) 100%);

@@ -44,7 +44,7 @@ async function fetchBitcoinFeeData() {
       const feePerTx = txCount > 0 ? totalFeeBTC / txCount : 0;
       data.push({
         date,
-        feeInBitcoins: feePerTx.toFixed(8),
+        feeInBitcoins: Number(feePerTx.toFixed(8)),
       });
     });
 

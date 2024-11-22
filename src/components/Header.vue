@@ -6,11 +6,11 @@
         Liquid Locking <span class="hidden xl:inline">for Bitcoin</span>
       </h1>
     </div>
-    <div class="relative h-full min-w-[58%]">
+    <div class="relative h-full min-w-[58%] cursor-default">
       <div v-if="isLoaded" class="absolute left-[55%] top-0 min-w-[83%] z-[1000] -translate-x-1/2 ">
         <div class="relative text-slate-500 whitespace-nowrap z-10 h-[56px] px-3 flex items-center justify-center uppercase">
           <div class="absolute -left-4 -right-4 -bottom-4 h-16 z-1" style="background: linear-gradient(to bottom, #E6EAF3 30%, rgba(248, 250, 255, 0));"></div>
-          <span class="relative z-10 top-1">VAULTING RESULTS FROM {{ dayjs.utc(sliderDates.left).format('MMMM D, YYYY') }} TO {{ dayjs.utc(sliderDates.right).format('MMMM D, YYYY') }}</span>
+          <span class="relative z-10 top-1">RESULTS FROM {{ dayjs.utc(sliderDates.left).format('MMMM D, YYYY') }} TO {{ dayjs.utc(sliderDates.right).format('MMMM D, YYYY') }}</span>
           <div class="absolute left-2 bottom-0 h-[1px] z-1 bg-slate-400/20" style="width: calc(80% - 16px)"></div>
           <div class="absolute right-2 bottom-0 h-[1px] z-1 bg-slate-400/20" style="width: calc(20% - 16px)"></div>
         </div>
@@ -18,30 +18,30 @@
           <div class="flex flex-row justify-between relative min-w-[80%] divide-x divide-slate-600/20 py-1">
             <div class="absolute left-0 -top-12 right-0 bottom-0 -z-1 bg-[#F8FAFF] rounded border-[1px] border-slate-800/20 shadow"></div>
             <div class="flex flex-col items-center justify-center min-w-[20%] py-2 px-10" insightId="ratchets" @mouseenter="showInsight" @mouseleave="hideInsight">
-              <div class="text-xl font-bold">{{ addCommas(vaultStats.ratchetCount) }}</div>
-              <div class="text-slate-500/70 whitespace-nowrap">Ratchet{{ vaultStats.ratchetCount === 1 ? '' : 's' }}</div>
+              <div class="text-xl font-bold">{{ addCommas(vaultSnapshot.ratchetCount) }}</div>
+              <div class="text-slate-500/70 whitespace-nowrap">Ratchet{{ vaultSnapshot.ratchetCount === 1 ? '' : 's' }}</div>
             </div>
             <div class="relative flex flex-col items-center justify-center min-w-[20%] py-2 px-10" insightId="shorts" @mouseenter="showInsight" @mouseleave="hideInsight">
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">+</div>
-              <div class="text-xl font-bold">{{ addCommas(vaultStats.shortCount) }}</div>
-              <div class="text-slate-500/70 whitespace-nowrap">Short Cover{{ vaultStats.shortCount === 1 ? '' : 's' }}</div>
+              <div class="text-xl font-bold">{{ addCommas(vaultSnapshot.shortCount) }}</div>
+              <div class="text-slate-500/70 whitespace-nowrap">Short Cover{{ vaultSnapshot.shortCount === 1 ? '' : 's' }}</div>
             </div>
             <div class="relative flex flex-col items-center justify-center min-w-[30%] py-2 px-1" insightId="cashUnlocked" @mouseenter="showInsight" @mouseleave="hideInsight">
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">=</div>
-              <div class="text-xl font-bold">${{ formatShorthandNumber(vaultStats.cashUnlocked) }}</div>
+              <div class="text-xl font-bold">${{ formatShorthandNumber(vaultSnapshot.totalCashUnlocked) }}</div>
               <div class="text-slate-500/70 whitespace-nowrap">Accrued Cash</div>
             </div>
             <div class="relative flex flex-col items-center justify-center min-w-[30%] py-2 px-1" insightId="vaulterReturns" align="grandparent" @mouseenter="showInsight" @mouseleave="hideInsight" @click="toggleInsightToStick">
               <div :style="{ opacity: vaulterProfitChange.isActive ? 1 : 0 }" :class="{ 'bg-green-200/50': vaulterProfitChange.change > 0, 'bg-red-200/50': vaulterProfitChange.change < 0 }" class="absolute left-1 top-0 right-1 bottom-0 -z-1 transition-opacity ease-in-out duration-1000"></div>
               <div class="absolute left-[-1px] top-2 text-xl font-bold -translate-x-1/2 bg-[#F8FAFF] pointer-events-none">=</div>
-              <div :class="{ 'text-green-700': vaultStats.vaulterProfit > 0, 'text-red-600': vaultStats.vaulterProfit < 0 }" class="text-xl font-bold">
-                {{ addCommas(formatChangePct(vaultStats.vaulterProfit)) }}%
+              <div :class="{ 'text-green-700': vaultSnapshot.vaulterProfit > 0, 'text-red-600': vaultSnapshot.vaulterProfit < 0 }" class="text-xl font-bold">
+                {{ addCommas(formatChangePct(vaultSnapshot.vaulterProfit)) }}%
                 <span class="relative h-[16px] w-[1px]">
                   <ArrowUpIcon :style="{ opacity: vaulterProfitChange.isActive && vaulterProfitChange.change > 0 ? 1 : 0 }" class="absolute top-[4.5px] left-1 w-[16px] h-[16px] transition-opacity ease-in-out duration-1000" />
                   <ArrowDownIcon :style="{ opacity: vaulterProfitChange.isActive && vaulterProfitChange.change < 0 ? 1 : 0 }" class="absolute top-[4.5px] left-1 w-[16px] h-[16px] transition-opacity ease-in-out duration-1000" />
                 </span>
               </div>
-              <div class="text-slate-500/70 whitespace-nowrap">Vaulter Return</div>
+              <div class="text-slate-500/70 whitespace-nowrap">Liquid Locking Return</div>
             </div>
           </div>
           <div class="flex flex-col relative min-w-[20%]">
@@ -49,14 +49,14 @@
             <div class="relative flex flex-col items-center justify-center py-2 my-1" insightId="hodlerReturns" align="grandparent" @mouseenter="showInsight" @mouseleave="hideInsight" @click="toggleInsightToStick">
               <div :style="{ opacity: hodlerProfitChange.isActive ? 1 : 0 }" :class="{ 'bg-green-200/50': hodlerProfitChange.change > 0, 'bg-red-200/50': hodlerProfitChange.change < 0 }" class="absolute left-1 top-0 right-1 bottom-0 -z-1 transition-opacity ease-in-out duration-1000"></div>
               <div class="absolute left-[-1px] top-3 font-bold -translate-x-1/2 bg-[#F8FAFF] border-[1px] border-slate-600/20 px-2 -py-2 rounded">vs</div>
-              <div :class="{ 'text-green-700': vaultStats.hodlerProfit > 0, 'text-red-600': vaultStats.hodlerProfit < 0 }" class="text-xl font-bold text-center w-full">
-                {{ addCommas(formatChangePct(vaultStats.hodlerProfit)) }}%
+              <div :class="{ 'text-green-700': vaultSnapshot.hodlerProfit > 0, 'text-red-600': vaultSnapshot.hodlerProfit < 0 }" class="text-xl font-bold text-center w-full">
+                {{ addCommas(formatChangePct(vaultSnapshot.hodlerProfit)) }}%
                 <span class="relative h-[16px] w-[1px]">
                   <ArrowUpIcon :style="{ opacity: hodlerProfitChange.isActive && hodlerProfitChange.change > 0 ? 1 : 0 }" class="absolute top-[4.5px] left-1 w-[16px] h-[16px] transition-opacity ease-in-out duration-1000" />
                   <ArrowDownIcon :style="{ opacity: hodlerProfitChange.isActive && hodlerProfitChange.change < 0 ? 1 : 0 }" class="absolute top-[4.5px] left-1 w-[16px] h-[16px] transition-opacity ease-in-out duration-1000" />
                 </span>
               </div>
-              <div class="text-slate-500/70 whitespace-nowrap text-center w-full">Hodler Return</div>
+              <div class="text-slate-500/70 whitespace-nowrap text-center w-full">Hodling Return</div>
             </div>
           </div>
         </div>
@@ -112,7 +112,6 @@ import emitter from '../emitters/basic';
 import Download from '../lib/Download';
 import * as InsightUtils from '../lib/InsightUtils';
 import * as TooltipUtils from '../lib/TooltipUtils';
-import Vault from '../lib/Vault';
 import ArrowUpIcon from '@/assets/arrow-up.svg';
 import ArrowDownIcon from '@/assets/arrow-down.svg';
 import PlayOutlined from '@/assets/play-outlined.svg';
@@ -120,9 +119,10 @@ import PlaySolid from '@/assets/play-solid.svg';
 import MoreInfoMenu from './MoreInfoMenu.vue';
 import ResetOutlined from '@/assets/reset-outlined.svg';
 import ResetSolid from '@/assets/reset-solid.svg';
+import VaultSnapshot from '../lib/VaultSnapshot';
 
 const basicStore = useBasicStore();
-const { vaultStats, bitcoinCount, sliderDates, isLoaded, vault } = storeToRefs(basicStore);
+const { bitcoinCount, sliderDates, isLoaded, vaultSnapshot } = storeToRefs(basicStore);
 
 const scoreboardRef = Vue.ref<HTMLElement | null>(null);
 const moreInfoMenuRef = Vue.ref<typeof MoreInfoMenu | null>(null);
@@ -145,8 +145,9 @@ function openVideoOverlay(closeFn?: () => void) {
   closeFn?.();
 }
 
-function downloadRawData() {
-  new Download(vault.value).run();
+async function downloadRawData() {
+  await vaultSnapshot.value?.isLoaded;
+  new Download(vaultSnapshot.value).run();
 }
 
 function showTooltip(event: MouseEvent, label: string) {
@@ -189,25 +190,25 @@ function showInsight(event: MouseEvent) {
   const data: any = {};
 
   if (['vaulterReturns', 'hodlerReturns'].includes(id)) {
-    const activeVault = vault.value as Vault;
+    const snapshot = vaultSnapshot.value as VaultSnapshot;
     data.bitcoinCount = bitcoinCount.value;
     data.startingDate = sliderDates.value.left;
     data.endingDate = sliderDates.value.right;
-    data.startingBtcValue = activeVault.startingPrice * bitcoinCount.value;
-    data.endingBtcValue = activeVault.endingPrice * bitcoinCount.value;
-    data.totalExpenses = activeVault.totalExpenses || 0;
-    data.totalAccruedValue = activeVault.totalAccruedValue || 0;
-    data.vaulterProfit = activeVault.vaulterProfit || 0;
-    data.hodlerExpenses = activeVault.hodlerExpenses || 0;
-    data.hodlerProfit = activeVault.hodlerProfit || 0;
-    data.totalHodlerValue = activeVault.totalHodlerValue || 0;
-    data.profitFromShorts = activeVault.profitFromShorts || 0;
-    data.profitFromInitialLock = activeVault.profitFromInitialLock || 0;
+    data.startingBtcValue = snapshot.startingPrice * bitcoinCount.value;
+    data.endingBtcValue = snapshot.endingPrice * bitcoinCount.value;
+    data.totalExpenses = snapshot.totalExpenses || 0;
+    data.totalAccruedValue = snapshot.totalAccruedValue || 0;
+    data.vaulterProfit = snapshot.vaulterProfit || 0;
+    data.hodlerExpenses = snapshot.hodlerExpenses || 0;
+    data.hodlerProfit = snapshot.hodlerProfit || 0;
+    data.totalHodlerValue = snapshot.totalHodlerValue || 0;
+    data.profitFromShorts = snapshot.profitFromShorts || 0;
+    data.profitFromInitialLock = snapshot.profitFromInitialLock || 0;
 
-    data.profitFromRatchets = activeVault.totalAccruedValue - (
-      activeVault.profitFromInitialLock +
-      activeVault.profitFromShorts + 
-      (activeVault.endingPrice * bitcoinCount.value)
+    data.profitFromRatchets = snapshot.totalAccruedValue - (
+      snapshot.profitFromInitialLock +
+      snapshot.profitFromShorts + 
+      (snapshot.endingPrice * bitcoinCount.value)
     );
   }
 
@@ -243,8 +244,8 @@ function displayChange(newValue: number | undefined, oldValue: number | undefine
 const vaulterProfitChange = Vue.ref<any>({});
 const hodlerProfitChange = Vue.ref<any>({});
 
-Vue.watch(() => vaultStats.value.vaulterProfit, displayChange.bind(vaulterProfitChange));
-Vue.watch(() => vaultStats.value.hodlerProfit, displayChange.bind(hodlerProfitChange));
+Vue.watch(() => vaultSnapshot.value?.vaulterProfit, displayChange.bind(vaulterProfitChange));
+Vue.watch(() => vaultSnapshot.value.hodlerProfit, displayChange.bind(hodlerProfitChange));
 </script>
 
 <style lang="scss">

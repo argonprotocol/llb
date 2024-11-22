@@ -10,7 +10,7 @@
       </svg>
     </div>
 
-    <div ref="boxRef" :style="`transform: translateX(${boxConfig.translateX}%)`" class="absolute left-0 bottom-[23px] z-0 whitespace-nowrap flex flex-col shadow-lg bg-white border border-slate-400/60 rounded-lg">
+    <div ref="boxRef" :style="`transform: translateX(${boxConfig.translateX}%)`" class="absolute left-0 bottom-[23px] z-0 whitespace-nowrap flex flex-col shadow-lg bg-white border border-slate-400/60 rounded-lg max-w-[300px]">
       <table class="mx-3">
         <thead>
           <tr>
@@ -18,16 +18,26 @@
           </tr>
         </thead>
         <tbody class="align-middle">
-            <tr>
-              <td class="text-left opacity-50 pr-2">Price Per Bitcoin</td>
-              <td class="text-right font-bold">${{ addCommas(formatPrice(item.price)) }}</td>
-              <td>
-                <span v-if="priceDiff" class="font-normal relative" :class="priceDiff > 0 ? 'text-green-700' : 'text-red-500'">
-                  <span class="font-light">(</span><span class="font-bold">{{priceDiff > 0 ? '+' : '' }}{{ addCommas(priceDiff) }}%<span class="font-light">)</span></span>
-                </span>
-                <span v-else class="font-bold text-slate-400"><span class="font-light">(</span>0%<span class="font-light">)</span></span>
-              </td>
-            </tr>
+          <tr>
+            <td class="text-left opacity-50 pr-2">Price Per Bitcoin</td>
+            <td class="text-right font-bold">${{ addCommas(formatPrice(item.price)) }}</td>
+            <td class="pr-3">
+              <span v-if="priceDiff" class="font-normal relative" :class="priceDiff > 0 ? 'text-green-700' : 'text-red-500'">
+                <span class="font-light">(</span><span class="font-bold">{{priceDiff > 0 ? '+' : '' }}{{ addCommas(priceDiff) }}%<span class="font-light">)</span></span>
+              </span>
+              <span v-else class="font-bold text-slate-400"><span class="font-light">(</span>0%<span class="font-light">)</span></span>
+            </td>
+          </tr>
+          <tr>
+            <td class="text-left opacity-50 pr-2">Transaction Fee</td>
+            <td class="text-right font-bold">${{ addCommas(formatPrice(item.fee)) }}</td>
+            <td class="pr-3">
+              <span v-if="feeDiff" class="font-normal relative" :class="feeDiff > 0 ? 'text-green-700' : 'text-red-500'">
+                <span class="font-light">(</span><span class="font-bold">{{feeDiff > 0 ? '+' : '' }}{{ addCommas(feeDiff) }}%<span class="font-light">)</span></span>
+              </span>
+              <span v-else class="font-bold text-slate-400"><span class="font-light">(</span>0%<span class="font-light">)</span></span>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -54,6 +64,7 @@ const boxRef: Vue.Ref<HTMLElement | null> = Vue.ref(null);
 const boxConfig = Vue.ref({ translateX: 50 });
 
 const priceDiff = Vue.ref(0);
+const feeDiff = Vue.ref(0);
 
 function updateBoxPosition() {
   const arrowRect = arrowRef.value?.getBoundingClientRect() || { left: 0} as DOMRect;
@@ -85,12 +96,19 @@ Vue.watch(props.config, () => {
 });
 
 function updateItemsDiffs() {
-  const previousPrice = item.value.previous.price;
+  const previousPrice = item.value.previous?.price;
   const currentPrice = item.value.price;
   if (!previousPrice || !currentPrice) {
     return;
   }
   priceDiff.value = formatChangePct((currentPrice - previousPrice) / previousPrice);
+
+  const previousFee = item.value.previous?.fee;
+  const currentFee = item.value.fee;
+  if (!previousFee || !currentFee) {
+    return;
+  }
+  feeDiff.value = formatChangePct((currentFee - previousFee) / previousFee);
 }
 
 </script>

@@ -1,7 +1,7 @@
 <template>
   <div :class="[tourStep === 1 ? 'z-[2000]' : '']" class="absolute pointer-events-none" :style="`left: ${leftPx}px; top: ${topPx}px; opacity: ${config.opacity}`">
     
-    <div Arrow ref="arrowRef" :style="{'--tw-rotate': `${rotationDegree}deg`, 'left': `${arrowLeft}px`}" class="relative -translate-y-1/2 -translate-x-1/2 mt-[-0.5px] z-1">
+    <div Arrow ref="arrowRef" :style="{'--tw-rotate': `${rotationDegree}deg`, 'left': `${arrowLeft}px`}" class="relative -translate-y-1/2 -translate-x-1/2 mt-[-7px] z-[2]">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 0L24 12H0L12 0Z" fill="white"/>
       </svg>
@@ -10,7 +10,7 @@
       </svg>
     </div>
 
-    <div ref="boxRef" :style="[boxStyles]" class="text-center z-0 whitespace-nowrap px-1 py-2 flex flex-col shadow bg-white border border-slate-400/60 rounded">
+    <div ref="boxRef" :style="[boxStyles]" class="text-center z-[1] whitespace-nowrap px-1 py-2 flex flex-col shadow bg-white border border-slate-400/60 rounded">
       <div class="font-bold border-b border-slate-300/60 px-3 pb-1 mb-1">{{ dayjs.utc(item.date).format('MMM D, YYYY') }}</div>
       <div class="text-slate-400  px-3">{{isLeft ? 'Bought ' : 'Exited '}} at ${{ addCommas(formatPrice(item.price)) }}</div>
     </div>
@@ -85,17 +85,14 @@ function checkRightBoxPosition(left: number, boxRect: DOMRect) {
   const isTooFarRight = boxRect.right >= window.innerWidth - 15;
 
   if (isTooFarRight && !boxOverride.value.isResetting) {
-    console.log('isTooFarRight', isTooFarRight, boxOverride.value.left);
 
     if (!boxOverride.value.left) {
       boxOverride.value.left = window.innerWidth - boxRect.width - 15;
       boxOverride.value.top = boxRect.top + 10;
       boxOverride.value.arrowLeft = arrowRef.value?.getBoundingClientRect().right || 0;
-      console.log('SET arrowLeft', boxOverride.value.arrowLeft);
     } else {
       const arrowLeft = arrowRef.value?.getBoundingClientRect().right || 0;
       if (arrowLeft < boxOverride.value.arrowLeft) {
-        console.log('LEFT arrowLeft', arrowLeft);
         boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: true };
       }
     }

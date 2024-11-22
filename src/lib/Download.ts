@@ -1,15 +1,16 @@
 import JSZip from 'jszip';
-import Vault, { IAction } from './Vault';
+import { IAction } from './Vault';
+import VaultSnapshot from './VaultSnapshot';
 
 export default class Download {
-  public vault: Vault;
+  public vaultSnapshot: VaultSnapshot;
   public actionsByDate: Record<string, IAction>;
 
-  constructor(vault: Vault | null) {
-    if (!vault) throw new Error('Vault is required');
+  constructor(vaultSnapshot: VaultSnapshot | null) {
+    if (!vaultSnapshot) throw new Error('VaultSnapshot is required');
 
-    this.vault = vault;
-    this.actionsByDate = vault.actions.reduce((acc, action) => {
+    this.vaultSnapshot = vaultSnapshot;
+    this.actionsByDate = vaultSnapshot.actions.reduce((acc, action) => {
       acc[action.date] = action;
       return acc;
     }, {} as Record<string, IAction>);
@@ -32,11 +33,11 @@ export default class Download {
   }
 
   generateData() {
-    let lastVaultAction = this.vault.actions[0];
+    let lastVaultAction = this.vaultSnapshot.actions[0];
 
-    const startingPrice = this.vault.prices[0].price;
+    const startingPrice = this.vaultSnapshot.prices[0].price;
     const records = [];
-    for (const { date, price } of this.vault.prices) {
+    for (const { date, price } of this.vaultSnapshot.prices) {
       const currentVaultAction = this.actionsByDate[date];
 
       const btcPriceDiffSinceLastVault = price - lastVaultAction.price;

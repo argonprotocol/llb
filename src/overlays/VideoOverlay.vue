@@ -5,7 +5,7 @@
         <div @click="close" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
       </TransitionChild>
 
-      <div @click="close" class="fixed inset-0 z-50 w-screen overflow-y-auto">
+      <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             
@@ -21,9 +21,7 @@
 
               <div class="grow relative">
                 <div class="LoadingPulse absolute inset-0 flex items-center justify-center text-slate-500/60 text-3xl uppercase">Loading Video...</div>
-                <div style="position: relative; padding-bottom: 62.42774566473989%; height: 0;">
-                  <iframe src="https://www.loom.com/embed/e0d953d43ce84a95a6249c04b44a023c?sid=278f7f8e-d70a-4481-ab03-256a6deaad39" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
-                </div>
+                <wistia-player media-id="1k1jdinjxd"></wistia-player>
               </div>
             </DialogPanel>
 
@@ -58,6 +56,14 @@ function close() {
 
 emitter.on('openVideoOverlay', () => {
   isOpen.value = true;
+});
+
+// Load Wistia script dynamically
+Vue.onMounted(() => {
+  const script = document.createElement('script');
+  script.src = 'https://fast.wistia.com/player.js';
+  script.async = true;
+  document.head.appendChild(script);
 });
 
 </script>

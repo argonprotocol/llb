@@ -3,21 +3,15 @@ import { defineStore } from 'pinia'
 import API from './lib/API';
 import BtcFees from './lib/BtcFees';
 import BtcPrices from './lib/BtcPrices';
-import Vault, { IAction, IShort } from './lib/Vault';
+import { IShort } from './lib/Vault';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import VaultSnapshot from './lib/VaultSnapshot';
+import VaultQueue from './lib/VaultQueue';
 
 dayjs.extend(utc);
 
 export type IPanelName =  'runner' | 'base';
-
-export interface IVaultStats {
-  ratchetCount: number;
-  shortCount: number;
-  cashUnlocked: number;
-  vaulterProfit: number;
-  hodlerProfit: number;
-}
 
 const config = JSON.parse(sessionStorage.getItem('config') || '{}');
 if (config.shorts) {
@@ -28,7 +22,6 @@ export const useBasicStore = defineStore('help', () => {
   const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
   const btcPrices = new BtcPrices();
   const btcFees = new BtcFees(btcPrices);
-  const vault = Vue.ref<Vault | null>(null);
 
   const tourStep: Vue.Ref<number> = Vue.ref(config.tourStep || 0);
   const completedWelcome: Vue.Ref<boolean> = Vue.ref(config.completedWelcome || false);
@@ -39,20 +32,23 @@ export const useBasicStore = defineStore('help', () => {
   const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: config.sliderIndexes?.left || 3_698, right: config.sliderIndexes?.right || 4_282 });
   const sliderDates: Vue.Ref<{ left: string, right: string }> = Vue.ref({ left: config.sliderDates?.left || '2010-08-17', right: config.sliderDates?.right || '2024-08-26' });
 
-  const shorts: Vue.Ref<IShort[]> = Vue.ref(config.shorts || [
-    { date: dayjs.utc('2022-01-18'), lowestPrice: 0.46 },
-    { date: 'EXIT', lowestPrice: 0.001 },
-  ]);
+  const vaultSnapshot = Vue.ref<VaultSnapshot>(new VaultSnapshot());
+  const vaultQueue = new VaultQueue(vaultSnapshot);
   
-  const vaultStats: Vue.Ref<IVaultStats> = Vue.ref({
-    ratchetCount: 0,
-    shortCount: 0,
-    cashUnlocked: 0,
-    vaulterProfit: 0,
-    hodlerProfit: 0,
-  });
+  const shorts: Vue.Ref<IShort[]> = Vue.ref(config.shorts || [
+    // { date: dayjs.utc('2021-03-18'), lowestPrice: 0.46 },
+    // { date: 'EXIT', lowestPrice: 0.001 },
+  ]);
 
   const positionChecks: Record<string, () => DOMRect> = {};
+
+  function runVault(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[], bitcoinCount: number) {
+    if (!isLoaded.value) {
+      console.error('Data not loaded');
+      return;
+    }
+    vaultQueue.add(startingDate, endingDate, ratchetPct, shorts, bitcoinCount);
+  }
 
   function setConfig(data: any) {
     tourStep.value = data.tourStep ?? tourStep.value;
@@ -76,17 +72,6 @@ export const useBasicStore = defineStore('help', () => {
 
   function resetConfig() {
     sessionStorage.removeItem('config');
-  }
-  
-  function updateVaultStats() {
-    if (!vault.value) return;
-    vaultStats.value = {
-      ratchetCount: vault.value.actions.filter((a: IAction) => a.type === 'ratchet-up' || a.type === 'ratchet-down').length,
-      shortCount: vault.value.shorts.length,
-      cashUnlocked: vault.value.totalCashUnlocked,
-      vaulterProfit: vault.value.vaulterProfit,
-      hodlerProfit: vault.value.hodlerProfit,
-    };
   }
 
   function registerPositionCheck(id: string, checkFn: () => DOMRect) {
@@ -117,7 +102,7 @@ export const useBasicStore = defineStore('help', () => {
     isLoaded, 
     btcPrices, 
     btcFees, 
-    vault, 
+    vaultSnapshot,
 
     ratchetPct,
     bitcoinCount,
@@ -125,14 +110,14 @@ export const useBasicStore = defineStore('help', () => {
     sliderIndexes, 
     sliderDates,
     shorts,
-    vaultStats,
     tourStep,
     completedWelcome,
+
     loadData, 
-    updateVaultStats,
     registerPositionCheck,
     getPositionCheck,
     resetConfig,
+    runVault,
     setConfig,
   }
 });

@@ -2,7 +2,7 @@
   <div Wrapper class="grow h-full flex flex-col relative">
     <div class="absolute w-full h-full">
       <slot />
-      <ChartTooltip :config="tooltipConfig" />
+      <Charttip :config="tooltipConfig" />
     </div>
 
     <div ChartWrapper class="grow relative w-full">
@@ -20,7 +20,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import dayjsUtc from 'dayjs/plugin/utc';
 import { Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale, TimeScale, Tooltip, TooltipModel } from 'chart.js';
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
-import ChartTooltip from '../overlays/ChartTooltip.vue';
+import Charttip from '../overlays/Charttip.vue';
 import { createChartOptions } from '../lib/ChartOptions';
 import XAxis from './XAxis.vue';
 

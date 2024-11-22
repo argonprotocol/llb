@@ -15,7 +15,7 @@
                   <div class="text-4xl font-bold text-gray-900">Liquid Locking for Bitcoin</div>
                 </DialogTitle>
 
-                <div class="mt-3 text-left sm:mt-5 border-y border-gray-200 pt-4 pb-6 text-base text-gray-500 space-y-3 px-3">
+                <div class="mt-3 text-left sm:mt-5 border-y border-gray-200 pt-4 pb-6 text-base text-gray-500 space-y-3 px-3 cursor-default">
                   <p>
                     Argon is the first crypto asset with an ability to remain stable without requiring off-chain collateral or centralized authorities. Instead, it 
                     leverages the volatility of Bitcoin to create a wall of shorts against the Argon. These shorts are created through a process of placing 
@@ -33,7 +33,7 @@
                   </ol>
                   <p>
                     We recommend first-timers <a @click="startTour">Take the Tour</a>. You can also 
-                    <a @click="openVideoOverlay">watch our Who Is the Loser video</a>, 
+                    <a @click="openVideoOverlay">watch our The Loser video</a>, 
                     <a @click="openWhitepapersOverlay">read our Whitepapers</a>, explore 
                     <a @click="openFaqOverlay">Frequently Asked Questions</a>, or 
                     learn <a @click="openDetailsOfLiquidLocking">more about Liquid Locking</a>.
