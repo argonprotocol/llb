@@ -26,7 +26,7 @@
         </div>
 
         <div v-else-if="id === 'vaulterReturns'" class="space-y-2">
-          <p class="pb-2">Vaulting provides substantially higher returns than straight up hodling because of two things: they hedge against Bitcoin's downside volatility and they provide additional profit opportunities, such as ratcheting and shorting. The following table breaks down these returns:</p>
+          <p class="pb-2">Liquid Locking provides substantially higher returns than straight up hodling because of two things: they hedge against Bitcoin's downside volatility and they provide additional profit opportunities, such as ratcheting and shorting. The following table breaks down these returns:</p>
 
           <table class="w-full">
             <tr class="border-b border-t border-slate-400/30 h-[30px] italic hover:bg-slate-100">
