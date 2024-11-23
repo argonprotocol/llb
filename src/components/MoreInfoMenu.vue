@@ -17,7 +17,7 @@
           <a @click="openDetailsOfLiquidLocking(closeFn)" class="block pt-2 pb-1 px-3 hover:text-fuchsia-600 hover:bg-[#FAF4FC]">The Details of Liquid Locking</a>
           <a @click="openFaqOverlay(closeFn)" class="block pt-2 pb-1 px-3 hover:text-fuchsia-600 hover:bg-[#FAF4FC]">Frequently Asked Questions</a>
           <a @click="openWhitepapersOverlay(closeFn)" class="block pt-2 pb-1 px-3 hover:text-fuchsia-600 border-t border-gray-200 hover:bg-[#FAF4FC]">Read Our Whitepapers</a>
-          <a @click="openVideoOverlay(closeFn)" class="block pb-2 pt-1 px-3 hover:text-fuchsia-600 hover:bg-[#FAF4FC]">Watch <span class="italic">Who Is the Loser</span> Video</a>
+          <a @click="openVideoOverlay(closeFn)" class="block pb-2 pt-1 px-3 hover:text-fuchsia-600 hover:bg-[#FAF4FC]">Watch <span class="italic">The Loser</span> Video</a>
           <a @click="openTourOverlay(closeFn)" class="block py-2 px-3 hover:text-fuchsia-600 border-t border-gray-200 hover:bg-[#FAF4FC]">Take Our Guided Tour</a>
           <a class="block py-2 px-3 hover:text-fuchsia-600 border-t border-gray-200 hover:bg-[#FAF4FC]">Jump to the Analysis Stabilization Model</a>
         </div>
