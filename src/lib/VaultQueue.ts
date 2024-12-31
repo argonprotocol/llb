@@ -1,13 +1,18 @@
 import * as Vue from 'vue';
 import VaultSnapshot from './VaultSnapshot';
 import VaultWorker from '../workers/worker.ts?worker';
-import { IShort } from './Vault';
+import { IShort, IClonableShort } from './Vault';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
+
 
 type VaultQueuePayload = {
   startingDate: string;
   endingDate: string;
   ratchetPct: number;
-  shorts: IShort[];
+  shorts: IClonableShort[];
   bitcoinCount: number;
 };
 
@@ -28,7 +33,8 @@ export default class VaultQueue {
   }
 
   public add(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[], bitcoinCount: number) {
-    this.pending.push({ startingDate, endingDate, ratchetPct, shorts, bitcoinCount });
+    const clonableShorts = shorts.map(this.cloneShort);
+    this.pending.push({ startingDate, endingDate, ratchetPct, shorts: clonableShorts, bitcoinCount });
     this.processNext();
   }
 
@@ -42,5 +48,9 @@ export default class VaultQueue {
     this.pending = [];
 
     this.worker.postMessage(lastPayload);
+  }
+
+  private cloneShort(short: IShort): IClonableShort {
+    return { ...short, date: short.date === 'EXIT' ? 'EXIT' : dayjs.utc(short.date).format('YYYY-MM-DD') };
   }
 }

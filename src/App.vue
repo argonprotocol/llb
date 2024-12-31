@@ -36,21 +36,24 @@ import VideoOverlay from './overlays/VideoOverlay.vue';
 import WhitepapersOverlay from './overlays/WhitepapersOverlay.vue';
 import FaqOverlay from './overlays/FaqOverlay.vue';
 import DetailsOfLiquidLocking from './overlays/DetailsOfLiquidLocking.vue';
-import Tour from './panels/Tour.vue';
 import ConfirmConfigReset from './overlays/ConfirmConfigReset.vue';
+import Tour from './panels/Tour.vue';
 import emitter from './emitters/basic';
 
 const basicStore = useBasicStore();
-const { loadData } = basicStore;
 const { isLoaded, tourStep, completedWelcome } = storeToRefs(basicStore);
 
 const windowWidth = Vue.ref(window.innerWidth);
 
-Vue.onMounted(() => {
-  if (!completedWelcome.value && tourStep.value === 0) {
-    emitter.emit('openWelcomeOverlay');
-  }
+if (!completedWelcome.value && tourStep.value === 0) {
+  Vue.watch(isLoaded, (newVal) => {
+    if (newVal) {
+      emitter.emit('openWelcomeOverlay');
+    }
+  });
+}
 
+Vue.onMounted(() => {
   window.addEventListener('resize', () => {
     windowWidth.value = window.innerWidth;
   });
@@ -58,5 +61,5 @@ Vue.onMounted(() => {
 
 const isTooNarrow = Vue.computed(() => windowWidth.value < 1224);
 
-loadData();
+basicStore.loadData();
 </script>

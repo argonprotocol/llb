@@ -48,7 +48,7 @@ async function fetchBitcoinFeeData() {
       });
     });
 
-    const filePath = path.join(__dirname, '../public/data/bitcoinFeesPerTransaction.json')
+    const filePath = path.join(__dirname, '../src/data/bitcoinFeesPerTransaction.json')
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
     console.log('Data saved to public/data/bitcoinFeesPerTransaction.json');
   } catch (error) {

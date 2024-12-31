@@ -1,17 +1,17 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import IBitcoinFeeRecord from '../interfaces/IBitcoinFeeRecord';
 import BtcPrices from './BtcPrices';
+import bitcoinFeesPerTransaction from '../data/bitcoinFeesPerTransaction.json';
+
+dayjs.extend(utc);
 
 export default class BtcFees {
   public feeByDate: Record<string, number> = {};
-  public btcPrices: BtcPrices;
+  public btcPrices: BtcPrices = new BtcPrices();
 
-  constructor(btcPrices: BtcPrices) {
-    this.btcPrices = btcPrices;
-  }
-  
-  public load(bitcoinTransactionFees: IBitcoinFeeRecord[]) {
-    this.feeByDate = Object.fromEntries(bitcoinTransactionFees.map((record: IBitcoinFeeRecord) => [record.date, Number(record.feeInBitcoins)]));
+  constructor() {
+    this.feeByDate = Object.fromEntries(bitcoinFeesPerTransaction.map((record: IBitcoinFeeRecord) => [record.date, Number(record.feeInBitcoins)]));
   }
 
   public getInBitcoins(date: string): number {

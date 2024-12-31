@@ -40,7 +40,7 @@ async function fetchBitcoinData() {
     });
 
     // Write data to CSV file
-    const filePath = path.join(__dirname, '../public/data/bitcoinPrices.json')
+    const filePath = path.join(__dirname, '../src/data/bitcoinPrices.json')
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
     console.log('Data saved to bitcoinPrices.json');
   } catch (error) {

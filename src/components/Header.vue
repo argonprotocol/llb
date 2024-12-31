@@ -140,9 +140,8 @@ function resetConfig() {
   emitter.emit('openConfirmConfigReset');
 }
 
-function openVideoOverlay(closeFn?: () => void) {
+function openVideoOverlay() {
   emitter.emit('openVideoOverlay');
-  closeFn?.();
 }
 
 async function downloadRawData() {

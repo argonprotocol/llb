@@ -1,6 +1,5 @@
 import * as Vue from 'vue';
 import { defineStore } from 'pinia'
-import API from './lib/API';
 import BtcFees from './lib/BtcFees';
 import BtcPrices from './lib/BtcPrices';
 import { IShort } from './lib/Vault';
@@ -11,8 +10,6 @@ import VaultQueue from './lib/VaultQueue';
 
 dayjs.extend(utc);
 
-export type IPanelName =  'runner' | 'base';
-
 const config = JSON.parse(sessionStorage.getItem('config') || '{}');
 if (config.shorts) {
   config.shorts = config.shorts.map((s: any) => ({ date: s.date === 'EXIT' ? s.date : dayjs.utc(s.date), lowestPrice: s.lowestPrice }));
@@ -21,7 +18,7 @@ if (config.shorts) {
 export const useBasicStore = defineStore('help', () => {
   const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
   const btcPrices = new BtcPrices();
-  const btcFees = new BtcFees(btcPrices);
+  const btcFees = new BtcFees();
 
   const tourStep: Vue.Ref<number> = Vue.ref(config.tourStep || 0);
   const completedWelcome: Vue.Ref<boolean> = Vue.ref(config.completedWelcome || false);
@@ -89,12 +86,8 @@ export const useBasicStore = defineStore('help', () => {
   }
 
   async function loadData() {
-    const [a, b] = await Promise.all([
-      API.fetchSimulationData('bitcoinPrices'),
-      API.fetchSimulationData('bitcoinFeesPerTransaction')
-    ]);
-    btcPrices.load(a);
-    btcFees.load(b);
+    // this is no longer needed, but leaving it in case we want to add it back
+    await new Promise(resolve => setTimeout(resolve, 300));
     isLoaded.value = true;
   }
 

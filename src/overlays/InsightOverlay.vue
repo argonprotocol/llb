@@ -10,7 +10,7 @@
       </svg>
     </div>
     
-    <div class="grow">
+    <div class="grow cursor-default">
       <div class="py-3 text-left text-sm text-slate-500 font-light">
         
         <div v-if="id === 'ratchets'" class="space-y-2">
@@ -29,42 +29,44 @@
           <p class="pb-2">Liquid Locking provides substantially higher returns than straight up hodling because of two things: they hedge against Bitcoin's downside volatility and they provide additional profit opportunities, such as ratcheting and shorting. The following table breaks down these returns:</p>
 
           <table class="w-full">
-            <tr class="border-b border-t border-slate-400/30 h-[30px] italic hover:bg-slate-100">
-              <td>Starting Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} on {{ dayjs.utc(data.startingDate).format('MMM D, YYYY') }}</td>
-              <td class="text-right">${{addCommas(formatPrice(data.startingBtcValue))}}</td>
-            </tr>
-            <tr class="border-b-2 border-slate-400/60 h-[30px] italic hover:bg-slate-100">
-              <td>Ending Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} <span v-if="data.bitcoinCount > 1">(you own {{ data.bitcoinCount }})</span> on {{ dayjs.utc(data.endingDate).format('MMM D, YYYY') }}</td>
-              <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue))}}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
-              <td>Profits Accrued From Initial Lock</td>
-              <td class="text-right">${{addCommas(formatPrice(data.profitFromInitialLock))}}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
-              <td>Profits Accrued From Ratcheting</td>
-              <td class="text-right">${{addCommas(formatPrice(data.profitFromRatchets))}}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
-              <td>Profits Accrued From Short Covers</td>
-              <td class="text-right">${{addCommas(formatPrice(data.profitFromShorts))}}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
-              <td>Profits Accrued from Bitcoin Appreciation</td>
-              <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue - data.startingBtcValue))}}</td>
-            </tr>
-            <tr class="border-b-2 border-slate-400/60 h-[30px] hover:bg-slate-100">
-              <td>Bitcoin Transaction Fees and Related Expenses</td>
-              <td class="text-right">-${{ addCommas(formatPrice(data.totalExpenses)) }}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
-              <td>Final Value of Your Investment (Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} + Cash - Expenses)</td>
-              <td class="text-right">${{addCommas(formatPrice(data.totalAccruedValue))}}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
-              <td>Total Vaulter Profit</td>
-              <td class="text-right">{{addCommas(formatPrice(data.vaulterProfit * 100))}}%</td>
-            </tr>
+            <tbody>
+              <tr class="border-b border-t border-slate-400/30 h-[30px] italic hover:bg-slate-100">
+                <td>Starting Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} on {{ dayjs.utc(data.startingDate).format('MMM D, YYYY') }}</td>
+                <td class="text-right">${{addCommas(formatPrice(data.startingBtcValue))}}</td>
+              </tr>
+              <tr class="border-b-2 border-slate-400/60 h-[30px] italic hover:bg-slate-100">
+                <td>Ending Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} <span v-if="data.bitcoinCount > 1">(you own {{ data.bitcoinCount }})</span> on {{ dayjs.utc(data.endingDate).format('MMM D, YYYY') }}</td>
+                <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue))}}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
+                <td>Profits Accrued From Initial Lock</td>
+                <td class="text-right">${{addCommas(formatPrice(data.profitFromInitialLock))}}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
+                <td>Profits Accrued From Ratcheting</td>
+                <td class="text-right">${{addCommas(formatPrice(data.profitFromRatchets))}}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
+                <td>Profits Accrued From Short Covers</td>
+                <td class="text-right">${{addCommas(formatPrice(data.profitFromShorts))}}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
+                <td>Profits Accrued from Bitcoin Appreciation</td>
+                <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue - data.startingBtcValue))}}</td>
+              </tr>
+              <tr class="border-b-2 border-slate-400/60 h-[30px] hover:bg-slate-100">
+                <td>Bitcoin Transaction Fees and Related Expenses</td>
+                <td class="text-right">-${{ addCommas(formatPrice(data.totalExpenses)) }}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
+                <td>Final Value of Your Investment (Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} + Cash - Expenses)</td>
+                <td class="text-right">${{addCommas(formatPrice(data.totalAccruedValue))}}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
+                <td>Total Vaulter Profit</td>
+                <td class="text-right">{{addCommas(formatPrice(data.vaulterProfit * 100))}}%</td>
+              </tr>
+            </tbody>
           </table>
           
           <p class="pt-2">It's important to note that this model does NOT calculate compounding returns. All profits are taken off the table as cash and are left to sit for the duration of the simulation.</p>
@@ -77,30 +79,32 @@
           </p>
 
           <table class="w-full">
-            <tr class="border-b border-t border-slate-400/30 h-[30px] italic hover:bg-slate-100">
-              <td>Starting Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} on {{ dayjs.utc(data.startingDate).format('MMM D, YYYY') }}</td>
-              <td class="text-right">${{addCommas(formatPrice(data.startingBtcValue))}}</td>
-            </tr>
-            <tr class="border-b-2 border-slate-400/60 h-[30px] italic hover:bg-slate-100">
-              <td>Ending Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} <span v-if="data.bitcoinCount > 1">(you own {{ data.bitcoinCount }})</span> on {{ dayjs.utc(data.endingDate).format('MMM D, YYYY') }}</td>
-              <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue))}}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
-              <td>Profits Accrued from Bitcoin Appreciation</td>
-              <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue - data.startingBtcValue))}}</td>
-            </tr>
-            <tr class="border-b-2 border-slate-400/60 h-[30px] hover:bg-slate-100">
-              <td>Bitcoin Transaction Fees and Related Expenses</td>
-              <td class="text-right">-${{ addCommas(formatPrice(data.hodlerExpenses)) }}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
-              <td>Final Value of Your Investment (Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} + Cash - Expenses)</td>
-              <td class="text-right">${{addCommas(formatPrice(data.totalHodlerValue))}}</td>
-            </tr>
-            <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
-              <td>Total Hodler Profit</td>
-              <td class="text-right">{{addCommas(formatPrice(data.hodlerProfit * 100))}}%</td>
-            </tr>
+            <tbody>
+              <tr class="border-b border-t border-slate-400/30 h-[30px] italic hover:bg-slate-100">
+                <td>Starting Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} on {{ dayjs.utc(data.startingDate).format('MMM D, YYYY') }}</td>
+                <td class="text-right">${{addCommas(formatPrice(data.startingBtcValue))}}</td>
+              </tr>
+              <tr class="border-b-2 border-slate-400/60 h-[30px] italic hover:bg-slate-100">
+                <td>Ending Value of Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} <span v-if="data.bitcoinCount > 1">(you own {{ data.bitcoinCount }})</span> on {{ dayjs.utc(data.endingDate).format('MMM D, YYYY') }}</td>
+                <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue))}}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] hover:bg-slate-100">
+                <td>Profits Accrued from Bitcoin Appreciation</td>
+                <td class="text-right">${{addCommas(formatPrice(data.endingBtcValue - data.startingBtcValue))}}</td>
+              </tr>
+              <tr class="border-b-2 border-slate-400/60 h-[30px] hover:bg-slate-100">
+                <td>Bitcoin Transaction Fees and Related Expenses</td>
+                <td class="text-right">-${{ addCommas(formatPrice(data.hodlerExpenses)) }}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
+                <td>Final Value of Your Investment (Bitcoin{{ data.bitcoinCount === 1 ? '' : 's' }} + Cash - Expenses)</td>
+                <td class="text-right">${{addCommas(formatPrice(data.totalHodlerValue))}}</td>
+              </tr>
+              <tr class="border-b border-slate-400/30 h-[30px] font-bold hover:bg-slate-100">
+                <td>Total Hodler Profit</td>
+                <td class="text-right">{{addCommas(formatPrice(data.hodlerProfit * 100))}}%</td>
+              </tr>
+            </tbody>
           </table>
 
         </div>

@@ -24,12 +24,13 @@
       <div class="absolute left-20 top-[15%] flex flex-col min-w-[30%] xl:min-w-[35%] pb-20">
         <div class="relative max-w-[45%]">
           <p class="text-slate-700/80 text-base font-light text-shadow">
-            <strong class="font-bold">What is Liquid Locking?</strong> Liquid Locking is the process of depositing bitcoins into Argon Stabilization Vaults. In doing so, new argons equal to the value of the bitcoins being vaulted are minted and liquidated into the market. This unlocks cash for the bitcoin holders. It also creates additional profit opportunities such as from bitcoin hedging and covering shorts from argon depegs.
+            <strong class="font-bold">What is Liquid Locking?</strong> Liquid Locking is the process of depositing bitcoins into Argon Stabilization Vaults. In doing so, 
+            new argons equal to the value of the bitcoins are minted and liquidated into the market. This unlocks cash for the bitcoin holders. It also creates additional profit opportunities such as from bitcoin hedging and covering shorts from argon depegs.
           </p>
 
-          <div ref="configSectionRef" class="absolute top-full translate-y-7 left-0">
+          <div ref="configSectionRef" class="absolute left-0" style="top: calc(100% + 1.75rem)">
             
-            <section class="divide-y divide-slate-400/40 border-b border-slate-400/40 whitespace-nowrap uppercase text-sm">
+            <section class="divide-y divide-slate-400/40 border-b border-slate-400/40 whitespace-nowrap uppercase text-sm cursor-default">
               <h3 class="py-1 font-semibold text-base">CONFIGURE YOUR BITCOIN</h3>
               <div class="group relative py-2 pr-3">
                 <EditorButton id="bitcoinCount" type="number" v-model="bitcoinCount" @showing="showingEditor" @hiding="hidingEditor" @updated="runVault" />
@@ -66,7 +67,7 @@
               </div>
             </section>
 
-            <section class="mt-4 uppercase text-sm">
+            <section class="mt-4 uppercase text-sm cursor-default">
               <h3 class="py-1 font-semibold border-b border-slate-400/40 text-base">
                 CONFIGURE ARGON PRICE DROPS 
                 <span class="text-slate-400/60">(</span>
@@ -92,22 +93,22 @@
               </div>
             </section>
 
-            <div class="absolute -bottom-5 flex flex-row space-x-4 whitespace-nowrap translate-y-full">
+            <div class="absolute -bottom-5 flex flex-row space-x-4 whitespace-nowrap translate-y-full z-[1000]">
               <Popover v-slot="{ open: isOpen }" class="relative">
                 <PopoverButton class="inline-flex items-center gap-x-1 border border-slate-400 text-fuchsia-700 py-1.5 px-6 rounded-md bg-white/50 hover:bg-white/100 focus:outline-none">
                   <span class="pointer-events-none">Show Vault Activity</span>
                 </PopoverButton>
-                <ActionsList :actions="actions" :buttonSpacing="calculateButtonSpacing(isOpen)" />
+                <ActionsList :actions="vaultSnapshot.actions" :buttonSpacing="calculateButtonSpacing(isOpen)" />
               </Popover>
 
               <button @click="downloadRawData" class="border border-slate-400 text-fuchsia-700 py-1.5 px-6 rounded-md bg-white/50 hover:bg-white/100">
                 Download Raw Data
               </button>
 
-              <span VideoLink @click="openVideo" class="text-fuchsia-600 hover:text-fuchsia-500 cursor-pointer flex flex-row items-center pl-1 font-bold">
+              <span VideoLink @click="openVideoOverlay" class="text-fuchsia-600 hover:text-fuchsia-500 cursor-pointer flex flex-row items-center pl-1 font-bold">
                 <PlayOutlined OutlineIcon class="w-6 h-6 inline-block" />
                 <PlaySolid SolidIcon class="w-6 h-6 inline-block" />
-                <span class="inline-block underline decoration-dashed decoration-fuchsia-300 underline-offset-4 ml-2">Watch <em class="italic">The Loser</em></span>
+                <span class="inline-block underline decoration-dashed decoration-fuchsia-300 underline-offset-4 ml-2">Watch <em class="italic">Liquid Locking 101</em></span>
               </span>
             </div>
           </div>
@@ -127,7 +128,7 @@ import { useBasicStore } from '../store';
 import Chart from '../components/Chart.vue';
 import ChartBg from '../components/ChartBg.vue';
 import { storeToRefs } from 'pinia';
-import Vault, { IAction, IShort } from '../lib/Vault';
+import { IAction, IShort } from '../lib/Vault';
 import emitter from '../emitters/basic';
 import NibSlider from '../components/NibSlider.vue';
 import ChartMarker from '../overlays/ChartMarker.vue';
@@ -169,8 +170,6 @@ const hasDraggedSlider = Vue.ref(false);
 const nibsActive = Vue.ref({ left: false, right: false });
 
 const purchasePrice = Vue.ref(0);
-
-const actions = Vue.ref<IAction[]>([]);
 
 const activeShorts = Vue.computed(() => shorts.value.filter((s: IShort) => {
   return s.date === 'EXIT' || (s.date.isAfter(sliderDates.value.left) && s.date.isBefore(sliderDates.value.right));
@@ -229,7 +228,7 @@ basicStore.registerPositionCheck('nibSliders', () => {
   return lastNibSliderPosition;
 });
 
-function openVideo() {
+function openVideoOverlay() {
   emitter.emit('openVideoOverlay');
 }
 
@@ -478,8 +477,6 @@ function runVault() {
   purchasePrice.value = startingItem.price * bitcoinCount.value;
 
   basicStore.runVault(startingItem.date, endingItem.date, ratchetPct.value, activeShorts.value, bitcoinCount.value);
-
-  actions.value = vaultSnapshot.value.actions;
 }
 
 function loadChartData() {

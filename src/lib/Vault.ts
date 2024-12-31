@@ -1,7 +1,10 @@
-import { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import IBitcoinPriceRecord from '../interfaces/IBitcoinPriceRecord';
 import BtcFees from './BtcFees';
 import BtcPrices from "./BtcPrices";
+
+dayjs.extend(utc);
 
 export type IActionType = 'enter-vault' | 'ratchet-up' | 'ratchet-down' | 'short' | 'exit-vault';
 
@@ -24,6 +27,10 @@ export interface IAction {
 export interface IShort {
   date: Dayjs | 'EXIT';
   lowestPrice: number;
+}
+
+export interface IClonableShort extends Omit<IShort, 'date'> {
+  date: string;
 }
 
 const VAULT_SECURITY_PCT = 0;
@@ -53,13 +60,13 @@ export default class Vault {
 
   public profitFromShorts = 0;
 
-  constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[], btcPrices: BtcPrices, btcFees: BtcFees, bitcoinCount: number) {
+  constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[] | IClonableShort[], btcPrices: BtcPrices, btcFees: BtcFees, bitcoinCount: number) {
     this.startingDate = startingDate;
     this.endingDate = endingDate;
     this.ratchetDec = ratchetPct / 100;
 
-    this.shorts = shorts;
-    this.shortsByDate = shorts.reduce((acc, short) => {
+    this.shorts = shorts.map((short) => ({ ...short, date: short.date === 'EXIT' ? 'EXIT' : dayjs.utc(short.date) }));
+    this.shortsByDate = this.shorts.reduce((acc, short) => {
       acc[short.date === 'EXIT' ? 'EXIT' : short.date.format('YYYY-MM-DD')] = short;
       return acc;
     }, {} as Record<string, IShort>);

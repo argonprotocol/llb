@@ -22,17 +22,17 @@
               <DialogTitle class="text-3xl font-bold text-center py-3 border-b border-slate-300">Our Whitepapers</DialogTitle>
 
               <div class="flex flex-col divide-y text-center">
-                <a class="block pt-6 pb-5 outline-none" href="https://argonprotocol.org/the-state-of-collateral-backed-stablecoins.pdf" target="_blank">
-                  <div class="text-lg font-bold">The State of Collateral-Backed Stablecoins</div>
+                <a class="block pt-6 pb-5 outline-none" href="https://staging.argonprotocol.org/on-the-stabilization-of-collateral-backed-stablecoins.pdf" target="_blank">
+                  <div class="text-lg font-bold">On the Stabilization of Collateral-Backed Stablecoins</div>
                   <div class="text-sm text-slate-400">By Caleb Clark and Blake Byrnes</div>
                 </a>
-                <a class="block pt-6 pb-5 outline-none" href="https://argonprotocol.org/fundamentals-for-creating-a-truly-stable-asset.pdf" target="_blank">
-                  <div class="text-lg font-bold">The Fundamentals of Stabilizing a Crypto Asset</div>
+                <a class="block pt-6 pb-5 outline-none" href="https://staging.argonprotocol.org/the-fundamentals-for-creating-a-stable-asset.pdf" target="_blank">
+                  <div class="text-lg font-bold">The Fundamentals for Creating a Stable Crypto Asset</div>
                   <div class="text-sm text-slate-400">By Caleb Clark and Blake Byrnes</div>
                 </a>
-                <a disabled class="block pt-6 pb-5 outline-none" href="https://argonprotocol.org/bootstrapping-a-currency-from-zero-to-global.pdf" target="_blank">
+                <a disabled class="block pt-6 pb-5 outline-none">
                   <div class="text-lg font-bold">Bootstrapping a Currency From Zero to Global</div>
-                  <div class="text-sm text-slate-400">By Caleb Clark and Blake Byrnes</div>
+                  <div class="text-sm text-slate-400">In Progress, Coming Soon</div>
                 </a>
               </div>
               

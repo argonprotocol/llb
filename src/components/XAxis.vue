@@ -38,19 +38,5 @@ const lengthWidth = unitType === 'year' ? unitWidth * 4 : unitWidth;
   ul[Dates] li:first-child {
     border-left: none;
   }
-
-  [SegmentBg] {
-    cursor: pointer;
-    &:hover {
-      box-shadow: 1px 1px 0 0 rgba(16, 20, 24, 0.7);
-    }
-  }
-
-  [SegmentBg][isLoading="true"] {
-    cursor: default;
-    &:hover {
-      box-shadow: none;
-    }
-  }
 }
 </style>
