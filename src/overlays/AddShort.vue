@@ -45,6 +45,7 @@
                   </div>
                 </div>
               </div>
+              <p v-if="validationError" role="alert" class="mt-3 text-sm text-red-600">{{ validationError }}</p>
               <div class="mt-5 sm:mt-7 sm:flex sm:flex-row-reverse">
                 <button type="button" class="inline-flex w-full justify-center rounded-md bg-fuchsia-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-fuchsia-500 sm:ml-3 sm:w-auto" @click="insert">Insert</button>
                 <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto" @click="isOpen = false" ref="cancelButtonRef">Cancel</button>
@@ -65,10 +66,13 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
 import { DatePicker } from '@angelblanco/v-calendar';
 import emitter from '../emitters/basic';
+import { useBasicStore } from '../store';
 import { CalendarIcon } from '@heroicons/vue/24/outline';
 
 dayjs.extend(utc);
 
+const basicStore = useBasicStore();
+const validationError = Vue.ref('');
 const isOpen = Vue.ref(false);
 const date = Vue.ref();
 const lowestPrice = Vue.ref(0.001);
@@ -78,7 +82,15 @@ const maxDate = Vue.ref();
 const disabledDates = Vue.ref([]);
 
 function insert() {
-  if (!date.value || !lowestPrice.value) return;
+  const price = Number(lowestPrice.value);
+  if (!Number.isFinite(price) || price <= 0 || price >= basicStore.usdTargetForArgon) {
+    validationError.value = `Enter a USD price greater than zero and below the $${basicStore.usdTargetForArgon} target.`;
+    return;
+  }
+  if (!date.value) {
+    validationError.value = 'Choose a date for the price drop.';
+    return;
+  }
   emitter.emit('addShort', { 
     date: dayjs.utc(date.value), 
     lowestPrice: Number(lowestPrice.value),
@@ -87,6 +99,7 @@ function insert() {
 }
 
 emitter.on('openAddShort', ({ sliderDates, shorts }) => {
+  validationError.value = '';
   isOpen.value = true;
   minDate.value = sliderDates[0];
   maxDate.value = sliderDates[sliderDates.length - 1];

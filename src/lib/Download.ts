@@ -62,6 +62,8 @@ export default class Download {
 
       records.push({
         date,
+        usdTargetForArgon: this.vaultSnapshot.usdTargetForArgon,
+        argonTargetUpdatedAt: this.vaultSnapshot.argonTargetUpdatedAt,
         btcPrice: price,
         btcChangeSinceLastVault,
         btcTransactionFee,

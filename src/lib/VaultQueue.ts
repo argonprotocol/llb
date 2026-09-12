@@ -14,6 +14,8 @@ type VaultQueuePayload = {
   ratchetPct: number;
   shorts: IClonableShort[];
   bitcoinCount: number;
+  usdTargetForArgon: number;
+  argonTargetUpdatedAt: string;
 };
 
 export default class VaultQueue {
@@ -32,9 +34,9 @@ export default class VaultQueue {
     };
   }
 
-  public add(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[], bitcoinCount: number) {
+  public add(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[], bitcoinCount: number, usdTargetForArgon: number, argonTargetUpdatedAt: string) {
     const clonableShorts = shorts.map(this.cloneShort);
-    this.pending.push({ startingDate, endingDate, ratchetPct, shorts: clonableShorts, bitcoinCount });
+    this.pending.push({ startingDate, endingDate, ratchetPct, shorts: clonableShorts, bitcoinCount, usdTargetForArgon, argonTargetUpdatedAt });
     this.processNext();
   }
 

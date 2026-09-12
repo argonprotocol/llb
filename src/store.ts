@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import VaultSnapshot from './lib/VaultSnapshot';
 import VaultQueue from './lib/VaultQueue';
+import argonTarget from './data/argonTarget.json';
 
 dayjs.extend(utc);
 
@@ -54,7 +55,7 @@ export const useBasicStore = defineStore('help', () => {
       console.error('Data not loaded');
       return;
     }
-    vaultQueue.add(startingDate, endingDate, ratchetPct, shorts, bitcoinCount);
+    vaultQueue.add(startingDate, endingDate, ratchetPct, shorts, bitcoinCount, argonTarget.usdTargetForArgon, argonTarget.lastUpdatedAt);
   }
 
   function setConfig(data: any) {
@@ -104,7 +105,9 @@ export const useBasicStore = defineStore('help', () => {
   return { 
     isLoaded, 
     bitcoinPrices, 
-    bitcoinFees, 
+    bitcoinFees,
+    usdTargetForArgon: argonTarget.usdTargetForArgon,
+    argonTargetUpdatedAt: argonTarget.lastUpdatedAt,
     vaultSnapshot,
 
     ratchetPct,

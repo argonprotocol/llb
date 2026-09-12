@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "-build": "vue-tsc -b && vite build",
     "test": "vitest run",
-    "update:bitcoin": "node generators/fetchBitcoinPrices.js && node generators/fetchBitcoinFeesPerTransaction.js"
+    "update:bitcoin": "node generators/fetchBitcoinPrices.js && node generators/fetchBitcoinFeesPerTransaction.js",
+    "update:argon": "node generators/fetchArgonTarget.js"
   },
   "dependencies": {
     "@angelblanco/v-calendar": "^3.1.3",

@@ -26,7 +26,7 @@ export interface IAction {
 
 export interface IShort {
   date: Dayjs | 'EXIT';
-  lowestPrice: number;
+  lowestPrice: number; // USD per ARGN; the unlock formula uses price / target.
 }
 
 export interface IClonableShort extends Omit<IShort, 'date'> {
@@ -60,7 +60,10 @@ export default class Vault {
 
   public profitFromShorts = 0;
 
-  constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[] | IClonableShort[], bitcoinPrices: BitcoinPrices, bitcoinFees: BitcoinFees, bitcoinCount: number) {
+  constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[] | IClonableShort[], bitcoinPrices: BitcoinPrices, bitcoinFees: BitcoinFees, bitcoinCount: number, public readonly usdTargetForArgon: number = 1, public readonly argonTargetUpdatedAt: string = '') {
+    if (!Number.isFinite(usdTargetForArgon) || usdTargetForArgon <= 0) {
+      throw new Error('Argon target must be a finite positive USD price');
+    }
     this.startingDate = startingDate;
     this.endingDate = endingDate;
     this.ratchetDec = ratchetPct / 100;
@@ -122,7 +125,7 @@ export default class Vault {
       this.hodlerExpenses = fees;
 
       this.totalExpenses = fees;
-      this.totalArgonsMinted = (startingPrice * bitcoinCount);
+      this.totalArgonsMinted = (startingPrice * bitcoinCount) / this.usdTargetForArgon;
       this.totalCostOfArgonsToBurn = (costOfArgonsToBurn * bitcoinCount);
       this.totalCashUnlocked = cashChange;
       this.totalAccruedValue = cashChange;
@@ -131,7 +134,7 @@ export default class Vault {
         date: this.startingDate,
         price: startingPrice,
         type: 'enter-vault',
-        argonsMinted: (startingPrice * bitcoinCount),
+        argonsMinted: (startingPrice * bitcoinCount) / this.usdTargetForArgon,
         qtyOfArgonsToBurn,
         costOfArgonsToBurn,
         securityFee,
@@ -161,11 +164,11 @@ export default class Vault {
 
       const unlockPriceOfBtc = Math.min(currentPrice, lastAction.price);
 
-      let qtyOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount;
+      let qtyOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount / this.usdTargetForArgon;
       let costOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount;
 
       if (currentShort) {
-        qtyOfArgonsToBurn = Vault.calculateUnlockBurnPerBitcoinDollar(currentShort.lowestPrice) * unlockPriceOfBtc * bitcoinCount;
+        qtyOfArgonsToBurn = Vault.calculateUnlockBurnPerBitcoinDollar(currentShort.lowestPrice / this.usdTargetForArgon) * unlockPriceOfBtc * bitcoinCount / this.usdTargetForArgon;
         const newCostOfArgonsToBurn = qtyOfArgonsToBurn * currentShort.lowestPrice;
         this.profitFromShorts += costOfArgonsToBurn - newCostOfArgonsToBurn;
         costOfArgonsToBurn = newCostOfArgonsToBurn;
@@ -178,7 +181,7 @@ export default class Vault {
       const cashChange = (currentPrice * bitcoinCount) - (costOfArgonsToBurn + fees);
 
       this.totalExpenses += fees;
-      this.totalArgonsMinted += (currentPrice * bitcoinCount);
+      this.totalArgonsMinted += (currentPrice * bitcoinCount) / this.usdTargetForArgon;
       this.totalCostOfArgonsToBurn += costOfArgonsToBurn;
       this.totalCashUnlocked += cashChange;
       this.totalAccruedValue += cashChange;
@@ -187,7 +190,7 @@ export default class Vault {
         date: currentDate,
         price: currentPrice,
         type: currentShort ? 'short' : (changePct > 0 ? 'ratchet-up' : 'ratchet-down'),
-        argonsMinted: (currentPrice * bitcoinCount),
+        argonsMinted: (currentPrice * bitcoinCount) / this.usdTargetForArgon,
         qtyOfArgonsToBurn,
         costOfArgonsToBurn,
         securityFee,
@@ -207,12 +210,12 @@ export default class Vault {
       
       const unlockPriceOfBtc = Math.min(endingPrice, lastAction.price);
 
-      let qtyOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount;
+      let qtyOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount / this.usdTargetForArgon;
       let costOfArgonsToBurn = unlockPriceOfBtc * bitcoinCount;
 
       if (this.shortsByDate.EXIT) {
         const currentShort = this.shortsByDate.EXIT;
-        qtyOfArgonsToBurn = Vault.calculateUnlockBurnPerBitcoinDollar(currentShort.lowestPrice) * unlockPriceOfBtc * bitcoinCount;
+        qtyOfArgonsToBurn = Vault.calculateUnlockBurnPerBitcoinDollar(currentShort.lowestPrice / this.usdTargetForArgon) * unlockPriceOfBtc * bitcoinCount / this.usdTargetForArgon;
         const newCostOfArgonsToBurn = qtyOfArgonsToBurn * currentShort.lowestPrice;
         this.profitFromShorts += costOfArgonsToBurn - newCostOfArgonsToBurn;
         costOfArgonsToBurn = newCostOfArgonsToBurn;

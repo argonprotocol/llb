@@ -7,6 +7,8 @@ export default class VaultSnapshot {
   public actions: IAction[] = [];
   public prices: IBitcoinPriceRecord[] = [];
   public bitcoinCount: number = 0;
+  public usdTargetForArgon: number = 1;
+  public argonTargetUpdatedAt: string = '';
 
   public startingPrice: number = 0;
   public endingPrice: number = 0;
@@ -29,6 +31,8 @@ export default class VaultSnapshot {
     this.actions = vault.actions;
     this.prices = vault.prices;
     this.bitcoinCount = vault.bitcoinCount;
+    this.usdTargetForArgon = vault.usdTargetForArgon;
+    this.argonTargetUpdatedAt = vault.argonTargetUpdatedAt;
 
     this.startingPrice = vault.startingPrice;
     this.endingPrice = vault.endingPrice;

@@ -48,3 +48,35 @@ Review and commit both JSON files together. Rebuild and deploy to publish the ne
 
 The chart currently has a fixed 2024 upper date limit and year labels. Updating
 the datasets does not extend those UI limits; that requires a separate chart change.
+
+## Update the mainnet Argon target
+
+```sh
+yarn update:argon
+yarn test
+yarn build
+```
+
+The update command downloads `usdTargetForArgon` and `lastUpdatedAt` from
+`https://argon.network/data/argonBasics.mainnet.json` into
+`src/data/argonTarget.json`. It validates both fields before writing; download or
+validation failures leave the previous snapshot intact. Commit the snapshot and
+rebuild/redeploy to publish it. No RPC dependency or live subscription is used.
+
+Each simulation freezes this target and its source timestamp. Reload after an
+update to use the new snapshot; saved dates and price drops remain configured,
+and results are recalculated. Short prices remain absolute USD per ARGN.
+The input accepts prices greater than zero and below the target.
+
+Bitcoin prices, cash, fees, and returns retain their USD basis. Minted and burned
+ARGN quantities divide the Bitcoin USD value by the target. The unlock formula
+receives the short's USD price divided by the target; burn cost is the resulting
+ARGN quantity multiplied by the short's USD price. CSV exports include
+`usdTargetForArgon` and `argonTargetUpdatedAt` alongside these values.
+
+This uses the mainnet **target**, not the current market price, and applies it
+throughout the selected historical Bitcoin period. It does not reconstruct past
+Argon targets or change the existing unlock formula or modeled fees. At the same
+percentage drop below target, token quantities change with the target while USD
+returns remain the same. An unchanged absolute USD short price represents a
+different percentage drop when the target changes.

@@ -74,6 +74,9 @@
                 <span @click="addShort" insightId="addPriceDrop" position="right" @mouseenter="showInsight" @mouseleave="hideInsight" class="text-fuchsia-700 hover:text-fuchsia-500 cursor-pointer px-1">ADD</span>
                 <span class="text-slate-400/60">)</span>
               </h3>
+              <p class="py-1 text-xs normal-case text-slate-500" :title="`Mainnet snapshot: ${basicStore.argonTargetUpdatedAt}`">
+                Mainnet target: ${{ basicStore.usdTargetForArgon }} per ARGN, fixed throughout this simulation.
+              </p>
               <div v-if="!activeShorts.length" class="border-b border-slate-400/40 py-2 italic text-slate-500/80">
                 No price drops configured
               </div>
@@ -85,7 +88,7 @@
                   </div>
                 </div>
                 <div PriceDrop v-else class="border-b border-slate-400/40 py-2"  @mouseenter="highlightShort(short)" @mouseleave="unhighlightShort()">
-                  On {{ dayjs(short.date).format('MMMM D, YYYY') }} Argon drops from $1.00 to ${{ short.lowestPrice }}
+                  On {{ dayjs(short.date).format('MMMM D, YYYY') }} Argon drops from ${{ basicStore.usdTargetForArgon }} to ${{ short.lowestPrice }}
                   <div @click="confirmShortRemoval(short)" class="absolute right-0 top-1.5 w-6 h-6 border border-slate-400/80 rounded text-fuchsia-700 hover:bg-white/50 cursor-pointer flex items-center justify-center">
                     <TrashIcon class="w-4 h-4" />
                   </div>
