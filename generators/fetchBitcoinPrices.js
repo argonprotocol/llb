@@ -1,52 +1,40 @@
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
+import { writeFileSync } from 'node:fs';
+import axios from 'axios';
 
-// API endpoint for fetching Bitcoin price data
 const BASE_URL = 'https://api.blockchain.info/charts/market-price';
-const START_DATE = '2010-07-18'; // First known price date
-const TODAY = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+const START_DATE = '2010-07-18';
+const TODAY = new Date().toISOString().split('T')[0];
 
 async function fetchBitcoinData() {
   try {
-    // Make API request to fetch Bitcoin price data
     const response = await axios.get(BASE_URL, {
-      params: {
-        timespan: 'all',
-        start: START_DATE,
-        end: TODAY,
-        format: 'json',
-        sampled: false, // Request all data points without sampling
-      },
+      timeout: 60_000,
+      params: { timespan: 'all', start: START_DATE, format: 'json', sampled: false },
     });
+    const { values } = response.data;
+    if (!Array.isArray(values) || !values.length) throw new Error('No Bitcoin prices returned');
 
     const data = [];
-    
-    // Process each data point
-    response.data.values.forEach((item, index) => {
-      // Skip the first item if it has no price (y value)
-      if (Object.values(data).length === 0 && !item.y) return;
-      
-      // Convert Unix timestamp to Date object and format as YYYY-MM-DD
-      const date = new Date((item.x - 3600) * 1000) // Subtract 1 hour to adjust for timezone
-      const dateStr = date.toISOString().split('T')[0];
-      
-      // Add formatted row to data record
-      data.push({
-        millis: item.x,
-        date: dateStr,
-        price: item.y,
-      });
-    });
+    for (const item of values) {
+      if (!Number.isFinite(item.x) || !Number.isFinite(item.y) || item.y < 0) {
+        throw new Error('Invalid Bitcoin price record');
+      }
+      // The API timestamps are Unix seconds in UTC; do not shift them by an hour.
+      const date = new Date(item.x * 1000).toISOString().split('T')[0];
+      if (date < START_DATE || date >= TODAY) continue;
+      if (!data.length && item.y === 0) continue;
+      if (item.y === 0) throw new Error(`Missing Bitcoin price for ${date}`);
+      data.push({ millis: item.x, date, price: item.y });
+    }
+    if (!data.length) throw new Error('No completed daily Bitcoin prices returned');
 
-    // Write data to CSV file
-    const filePath = path.join(__dirname, '../src/data/bitcoinPrices.json')
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    console.log('Data saved to bitcoinPrices.json');
+    const filePath = new URL('../src/data/bitcoinPrices.json', import.meta.url);
+    writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
+    console.log(`Saved ${data.length} Bitcoin prices (${data[0].date} through ${data.at(-1).date}) to src/data/bitcoinPrices.json`);
   } catch (error) {
-    console.error('Error fetching data:', error.response ? error.response.data : error.message);
+    console.error('Error fetching Bitcoin prices:', error.message);
+    process.exitCode = 1;
   }
 }
 
-// Execute the function
-fetchBitcoinData();
+await fetchBitcoinData();

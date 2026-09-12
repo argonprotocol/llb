@@ -1,14 +1,9 @@
 <template>
-  <div :class="[tourStep === 1 ? 'z-[2000]' : '']" class="absolute pointer-events-none" :style="`left: ${leftPx}px; top: ${topPx}px; opacity: ${config.opacity}`">
+  <div ref="markerRef" :class="[tourStep === 1 ? 'z-[2000]' : 'z-[2]']" class="absolute isolate w-0 pointer-events-none" :style="`left: ${leftPx}px; top: ${config.top}px; opacity: ${config.opacity}`">
     
-    <div Arrow ref="arrowRef" :style="{'--tw-rotate': `${rotationDegree}deg`, 'left': `${arrowLeft}px`}" class="relative -translate-y-1/2 -translate-x-1/2 mt-[-7px] z-[2]">
-      <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0L24 12H0L12 0Z" fill="white"/>
-      </svg>
-      <svg class="absolute z-0 -top-0.5 left-[-1.5px] opacity-20" width="26" height="14" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0L24 12H0L12 0Z" fill="black"/>
-      </svg>
-    </div>
+    <svg Arrow width="24" height="12" viewBox="0 0 24 12" class="absolute top-0 overflow-visible -translate-y-1/2 -translate-x-1/2 z-[2]">
+      <path :d="arrowPath" fill="white" stroke="rgb(148 163 184 / 0.6)" stroke-width="1" />
+    </svg>
 
     <div ref="boxRef" :style="[boxStyles]" class="text-center z-[1] whitespace-nowrap px-1 py-2 flex flex-col shadow bg-white border border-slate-400/60 rounded">
       <div class="font-bold border-b border-slate-300/60 px-3 pb-1 mb-1">{{ dayjs.utc(item.date).format('MMM D, YYYY') }}</div>
@@ -34,106 +29,69 @@ dayjs.extend(dayjsUtc);
 const props = defineProps<{
   config: any,
   direction: 'left' | 'right',
+  verticalOffset?: number,
 }>();
 
-const arrowRef: Vue.Ref<HTMLElement | null> = Vue.ref(null);
-const arrowLeft = Vue.ref(0);
+const emit = defineEmits<{ (e: 'bounds', bounds: { left: number; right: number; top: number; bottom: number; viewportHeight: number }): void }>();
 
-const boxRef: Vue.Ref<HTMLElement | null> = Vue.ref(null);
-const boxOverride = Vue.ref({ left: 0, top: 0, arrowLeft: 0, isResetting: false });
-
+const markerRef = Vue.ref<HTMLElement | null>(null);
+const boxRef = Vue.ref<HTMLElement | null>(null);
 const isLeft = props.direction === 'left';
-const rotationDegree = Vue.ref(isLeft ? 90 : -90);
-
-const item = Vue.computed(() => {
-  return props.config.item;
+const opensLeft = Vue.ref(isLeft);
+const item = Vue.computed(() => props.config.item);
+const leftPx = Vue.computed(() => props.config.left + (opensLeft.value ? -3 : 7));
+const arrowPath = Vue.computed(() => {
+  const tipX = opensLeft.value ? 18 : 6;
+  const baseX = opensLeft.value ? 6 : 18;
+  const offset = props.verticalOffset ?? 0;
+  return `M${baseX} ${offset} L${tipX} 6 L${baseX} ${offset + 12}`;
 });
+const boxStyles = Vue.computed<Vue.CSSProperties>(() => ({
+  position: 'absolute',
+  top: `${props.verticalOffset ?? 0}px`,
+  left: opensLeft.value ? undefined : '5px',
+  right: opensLeft.value ? 'calc(100% + 5px)' : undefined,
+  transform: 'translateY(-50%)',
+}));
 
-const topPx = Vue.computed(() => {
-  if (boxOverride.value.top) {
-    boxOverride.value.top = props.config.top + 16;
-  }
-  return props.config.top;
-});
+async function updatePlacement() {
+  if (!markerRef.value || !boxRef.value) return;
 
-function checkLeftBoxPosition(left: number, boxRect: DOMRect) {
-  if (!boxRect) return;
-  if (left > window.innerHeight / 2) return;
+  const marker = markerRef.value.getBoundingClientRect();
+  const width = boxRef.value.getBoundingClientRect().width;
+  const anchorLeft = marker.left - (opensLeft.value ? -3 : 7);
+  const spaceLeft = anchorLeft - 3 - 15;
+  const spaceRight = document.documentElement.clientWidth - (anchorLeft + 7) - 15;
+  const requiredSpace = width + 5;
 
-  const isTooFarLeft = boxRect.left > -100 && boxRect.left <= 5;
+  // Prefer the original side whenever it fits, regardless of the current placement.
+  opensLeft.value = isLeft
+    ? spaceLeft >= requiredSpace || spaceLeft > spaceRight
+    : spaceRight < requiredSpace && spaceLeft > spaceRight;
 
-  if (isTooFarLeft && !boxOverride.value.isResetting) {
-    if (!boxOverride.value.left) {
-      boxOverride.value.left = 5;
-      boxOverride.value.top = boxRect.top + 10;
-      boxOverride.value.arrowLeft = arrowRef.value?.getBoundingClientRect().left || 0;
-    } else {
-      const arrowLeft = arrowRef.value?.getBoundingClientRect().left || 0;
-      if (arrowLeft > boxOverride.value.arrowLeft) {
-        boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: true };
-      }
-    }
-  } else if (boxRect.left > 5) {
-    boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: false };
-  }
+  await Vue.nextTick();
+  if (!boxRef.value) return;
+  const box = boxRef.value.getBoundingClientRect();
+  const offset = props.verticalOffset ?? 0;
+  // Report the unshifted position so collision resolution does not feed back on itself.
+  emit('bounds', { left: box.left, right: box.right, top: box.top - offset,
+    bottom: box.bottom - offset, viewportHeight: document.documentElement.clientHeight });
 }
 
-function checkRightBoxPosition(left: number, boxRect: DOMRect) {
-  if (!boxRect) return;
-  if (left < window.innerHeight / 2) return;
+Vue.watch(() => [props.config.left, props.config.top, item.value.date, item.value.price], updatePlacement, { flush: 'post' });
 
-  const isTooFarRight = boxRect.right >= window.innerWidth - 15;
-
-  if (isTooFarRight && !boxOverride.value.isResetting) {
-
-    if (!boxOverride.value.left) {
-      boxOverride.value.left = window.innerWidth - boxRect.width - 15;
-      boxOverride.value.top = boxRect.top + 10;
-      boxOverride.value.arrowLeft = arrowRef.value?.getBoundingClientRect().right || 0;
-    } else {
-      const arrowLeft = arrowRef.value?.getBoundingClientRect().right || 0;
-      if (arrowLeft < boxOverride.value.arrowLeft) {
-        boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: true };
-      }
-    }
-  } else if (boxRect.right < window.innerWidth - 20) {
-    boxOverride.value = { left: 0, top: 0, arrowLeft: 0, isResetting: false };
-  } 
-}
-
-const leftPx = Vue.computed(() => {
-  const left = props.config.left + (isLeft ? -3 : 7);
-  const boxRect = boxRef.value?.getBoundingClientRect();
-
-  if (boxRect) {
-    checkLeftBoxPosition(left, boxRect);
-    checkRightBoxPosition(left, boxRect);
-  }
-
-  return left;
+let resizeObserver: ResizeObserver | undefined;
+Vue.onMounted(() => {
+  updatePlacement();
+  resizeObserver = new ResizeObserver(updatePlacement);
+  if (boxRef.value) resizeObserver.observe(boxRef.value);
+  if (markerRef.value?.parentElement) resizeObserver.observe(markerRef.value.parentElement);
+  window.addEventListener('resize', updatePlacement);
 });
 
-const boxStyles = Vue.computed(() => {
-  if (boxOverride.value.left) {
-    rotationDegree.value = 180;
-    arrowLeft.value = -5;
-    return { 
-      position: 'fixed', 
-      left: `${boxOverride.value.left}px`, 
-      top: `${boxOverride.value.top}px`,
-      transform: 'translateY(-60%)',
-    };
-  }
-  
-  rotationDegree.value = isLeft ? 90 : -90;
-  arrowLeft.value = 0;
-
-  return {
-    position: 'absolute',
-    top: 0,
-    ...(isLeft ? { right: '119%' } : { left: '20%' }),
-    transform: 'translateY(-60%)',
-  };
+Vue.onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+  window.removeEventListener('resize', updatePlacement);
 });
 
 </script>

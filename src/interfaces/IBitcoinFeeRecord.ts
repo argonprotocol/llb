@@ -1,4 +1,4 @@
-export default interface FeeRecord {
+export interface IBitcoinFeeRecord {
   date: string;
   feeInBitcoins: number;
 }

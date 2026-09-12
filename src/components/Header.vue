@@ -1,7 +1,7 @@
 <template>
   <div HeaderBar :class="[isLoaded ? 'opacity-100' : 'opacity-50 pointer-events-none']" class="HEADER COMPONENT flex flex-row pl-4 items-center">
     <div class="flex flex-row items-center w-1/3">
-      <a Logo href="https://argonprotocol.org" class="block w-8 relative top-[1px]"><Logo /></a>
+      <a Logo href="https://argon.network" class="block w-8 relative top-[1px]"><Logo /></a>
       <h1 class="text-2xl font-extralight relative top-[0.5px] text-left pl-[10px] py-3 whitespace-nowrap text-slate-600">
         Liquid Locking <span class="hidden xl:inline">for Bitcoin</span>
       </h1>
@@ -41,7 +41,7 @@
                   <ArrowDownIcon :style="{ opacity: vaulterProfitChange.isActive && vaulterProfitChange.change < 0 ? 1 : 0 }" class="absolute top-[4.5px] left-1 w-[16px] h-[16px] transition-opacity ease-in-out duration-1000" />
                 </span>
               </div>
-              <div class="text-slate-500/70 whitespace-nowrap">Liquid Locking Return</div>
+              <div class="text-slate-500/70 whitespace-nowrap">Liquid Returns</div>
             </div>
           </div>
           <div class="flex flex-col relative min-w-[20%]">
@@ -56,7 +56,7 @@
                   <ArrowDownIcon :style="{ opacity: hodlerProfitChange.isActive && hodlerProfitChange.change < 0 ? 1 : 0 }" class="absolute top-[4.5px] left-1 w-[16px] h-[16px] transition-opacity ease-in-out duration-1000" />
                 </span>
               </div>
-              <div class="text-slate-500/70 whitespace-nowrap text-center w-full">Hodling Return</div>
+              <div class="text-slate-500/70 whitespace-nowrap text-center w-full">Hodling Returns</div>
             </div>
           </div>
         </div>
@@ -204,7 +204,7 @@ function showInsight(event: MouseEvent) {
     data.profitFromShorts = snapshot.profitFromShorts || 0;
     data.profitFromInitialLock = snapshot.profitFromInitialLock || 0;
 
-    data.profitFromRatchets = snapshot.totalAccruedValue - (
+    data.profitFromRatchets = snapshot.totalAccruedValue + snapshot.totalExpenses - (
       snapshot.profitFromInitialLock +
       snapshot.profitFromShorts + 
       (snapshot.endingPrice * bitcoinCount.value)

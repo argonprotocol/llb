@@ -72,12 +72,12 @@ export function createChartOptions(chartPoints: any[], pointRadius: number[], on
             unit: 'day'
           },
           min: dayjs('2010-08-17').valueOf(),
-          max: dayjs('2024-12-31').valueOf(),
+          max: dayjs('2025-12-31').valueOf(),
         },
         y: {
           display: false,
           min: 0,
-          max: 100_000,
+          max: 130_000,
         }
       },
       clip: false,

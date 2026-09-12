@@ -1,8 +1,8 @@
 import dayjs, { type Dayjs } from "dayjs";
-import IBitcoinPriceRecord from '../interfaces/IBitcoinPriceRecord';
+import { IBitcoinPriceRecord } from '../interfaces/IBitcoinPriceRecord';
 import bitcoinPrices from '../data/bitcoinPrices.json';
 
-export default class BtcPrices {
+export default class BitcoinPrices {
   public prices: IBitcoinPriceRecord[] = [];
   public indexByDate: { [date: string]: number } = {};
 

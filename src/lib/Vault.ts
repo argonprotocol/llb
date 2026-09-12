@@ -1,8 +1,8 @@
 import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import IBitcoinPriceRecord from '../interfaces/IBitcoinPriceRecord';
-import BtcFees from './BtcFees';
-import BtcPrices from "./BtcPrices";
+import { IBitcoinPriceRecord } from '../interfaces/IBitcoinPriceRecord';
+import BitcoinFees from './BitcoinFees';
+import BitcoinPrices from "./BitcoinPrices";
 
 dayjs.extend(utc);
 
@@ -44,7 +44,7 @@ export default class Vault {
   public shortsByDate: Record<string, IShort> = {};
 
   public prices: IBitcoinPriceRecord[] = [];
-  public btcFees: BtcFees;
+  public bitcoinFees: BitcoinFees;
   public ratchetDec: number;
 
   public startingDate: string;
@@ -60,7 +60,7 @@ export default class Vault {
 
   public profitFromShorts = 0;
 
-  constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[] | IClonableShort[], btcPrices: BtcPrices, btcFees: BtcFees, bitcoinCount: number) {
+  constructor(startingDate: string, endingDate: string, ratchetPct: number, shorts: IShort[] | IClonableShort[], bitcoinPrices: BitcoinPrices, bitcoinFees: BitcoinFees, bitcoinCount: number) {
     this.startingDate = startingDate;
     this.endingDate = endingDate;
     this.ratchetDec = ratchetPct / 100;
@@ -71,8 +71,8 @@ export default class Vault {
       return acc;
     }, {} as Record<string, IShort>);
 
-    this.prices = btcPrices.getDateRange(startingDate, endingDate);
-    this.btcFees = btcFees;
+    this.prices = bitcoinPrices.getDateRange(startingDate, endingDate);
+    this.bitcoinFees = bitcoinFees;
     this.bitcoinCount = bitcoinCount;
     this.run();
   }
@@ -100,7 +100,7 @@ export default class Vault {
   }
 
   public get profitFromInitialLock(): number {
-    const lossSaved = Math.max(0, (this.startingPrice + this.hodlerExpenses) - this.endingPrice);
+    const lossSaved = Math.max(0, this.startingPrice - this.endingPrice);
     return lossSaved * this.bitcoinCount;
   }
 
@@ -114,8 +114,8 @@ export default class Vault {
       const qtyOfArgonsToBurn = 0;
       const costOfArgonsToBurn = 0;
       const securityFee = startingPrice * VAULT_SECURITY_PCT;
-      const btcTransactionFee = this.btcFees.getByDate(this.startingDate);
-      const argonTransactionFee = this.btcFees.getByDate(this.startingDate);
+      const btcTransactionFee = this.bitcoinFees.getByDate(this.startingDate);
+      const argonTransactionFee = this.bitcoinFees.getByDate(this.startingDate);
       const fees = securityFee + btcTransactionFee + argonTransactionFee;
       const cashChange = (startingPrice * bitcoinCount) - (costOfArgonsToBurn + fees);
 
@@ -172,8 +172,8 @@ export default class Vault {
       }
 
       const securityFee = currentPrice * VAULT_SECURITY_PCT;
-      const btcTransactionFee = changePct > 0 ? this.btcFees.getByDate(currentDate) : 0;
-      const argonTransactionFee = this.btcFees.getByDate(currentDate);
+      const btcTransactionFee = changePct > 0 ? this.bitcoinFees.getByDate(currentDate) : 0;
+      const argonTransactionFee = this.bitcoinFees.getByDate(currentDate);
       const fees = securityFee + btcTransactionFee + argonTransactionFee;
       const cashChange = (currentPrice * bitcoinCount) - (costOfArgonsToBurn + fees);
 
@@ -219,8 +219,8 @@ export default class Vault {
       }
 
       const securityFee = endingPrice * VAULT_SECURITY_PCT;
-      const btcTransactionFee = this.btcFees.getByDate(this.endingDate);
-      const argonTransactionFee = this.btcFees.getByDate(this.endingDate);
+      const btcTransactionFee = this.bitcoinFees.getByDate(this.endingDate);
+      const argonTransactionFee = this.bitcoinFees.getByDate(this.endingDate);
       const fees = securityFee + btcTransactionFee + argonTransactionFee;
       const cashChange = -(costOfArgonsToBurn + fees);
 

@@ -9,19 +9,19 @@
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             
-            <DialogPanel class="relative transform rounded-lg bg-white px-5 pb-3 pt-3 text-left shadow-xl transition-all w-full max-w-5xl min-h-[50rem]">
+            <DialogPanel class="relative transform rounded-lg bg-white px-5 pb-3 pt-3 text-left shadow-xl transition-all w-full max-w-3xl my-6">
               <div v-if="completedWelcome" @click="close()" CloseIcon class="absolute -top-2 -right-2 cursor-pointer flex flex-row items-center space-x-1 border border-slate-400/70 rounded-full p-2 bg-white hover:bg-slate-300 z-1">
                 <XMarkIcon class="inline-block w-4 h-4" />
               </div>
-              <div v-if="!completedWelcome" class="pb-3 border-b border-slate-300">
-                <div @click="close()" class="inline-block cursor-pointer text-gray-400 hover:text-fuchsia-600">
-                  <ArrowLeftIcon class="inline-block w-4 h-4 relative top-[-1.5px]" /> Back to Welcome
-                </div>
+              <div v-if="openedFromFaq || !completedWelcome" class="pb-3 border-b border-slate-300">
+                <button type="button" @click="close()" class="inline-block cursor-pointer text-gray-400 hover:text-fuchsia-600">
+                  <ArrowLeftIcon class="inline-block w-4 h-4 relative top-[-1.5px]" /> {{ openedFromFaq ? 'Back to FAQ' : 'Back to Welcome' }}
+                </button>
               </div>
 
               <DialogTitle class="text-3xl font-bold text-center py-3 border-b border-slate-300">The Details of Liquid Locking</DialogTitle>
 
-              <div class="flex flex-col space-y-3 px-6 pt-6 overflow-y-scroll overflow-x-auto max-h-[70vh]">
+              <div class="flex flex-col space-y-3 px-1 sm:px-4 py-4 text-base text-gray-500 cursor-default overflow-y-auto max-h-[65vh]">
                 <p>
                   The tool you are using touches on one of the most novel aspects of Argon: it's relationship to Bitcoin. Bitcoin is the key to Argon stabilization 
                   mechanisms, and in return, Argon delivers lucrative benefits to Bitcoin holders. Bitcons are both given the right to mint Argons when market
@@ -63,15 +63,19 @@ const basicStore = useBasicStore();
 const { completedWelcome } = storeToRefs(basicStore);
 
 const isOpen = Vue.ref(false);
+const openedFromFaq = Vue.ref(false);
 
 function close() {
   isOpen.value = false;
-  if (!completedWelcome.value) {
+  if (openedFromFaq.value) {
+    emitter.emit('openFaqOverlay');
+  } else if (!completedWelcome.value) {
     emitter.emit('openWelcomeOverlay');
   }
 }
 
-emitter.on('openDetailsOfLiquidLocking', () => {
+emitter.on('openDetailsOfLiquidLocking', (source) => {
+  openedFromFaq.value = source === 'faq';
   isOpen.value = true;
 });
 
@@ -79,7 +83,7 @@ emitter.on('openDetailsOfLiquidLocking', () => {
 
 <style lang="scss" scoped>
 a {
-  @apply text-slate-600 hover:text-fuchsia-500;
+  @apply text-fuchsia-600 hover:text-fuchsia-500 underline decoration-dashed;
   cursor: pointer;
   &[disabled] {
     @apply pointer-events-none;

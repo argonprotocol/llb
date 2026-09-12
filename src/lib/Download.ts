@@ -35,7 +35,8 @@ export default class Download {
   generateData() {
     let lastVaultAction = this.vaultSnapshot.actions[0];
 
-    const startingPrice = this.vaultSnapshot.prices[0].price;
+    const bitcoinCount = this.vaultSnapshot.bitcoinCount;
+    const startingValue = this.vaultSnapshot.prices[0].price * bitcoinCount;
     const records = [];
     for (const { date, price } of this.vaultSnapshot.prices) {
       const currentVaultAction = this.actionsByDate[date];
@@ -53,7 +54,11 @@ export default class Download {
         totalCashUnlocked,
       } = currentVaultAction || {};
 
-      const totalAccruedValue = currentVaultAction?.totalAccruedValue || lastVaultAction.totalAccruedValue + Math.max(0, btcPriceDiffSinceLastVault);
+      const totalAccruedValue = currentVaultAction?.totalAccruedValue
+        ?? lastVaultAction.totalAccruedValue + Math.max(0, btcPriceDiffSinceLastVault) * bitcoinCount;
+      const hodlerExpenses = type === 'exit-vault'
+        ? this.vaultSnapshot.hodlerExpenses
+        : this.vaultSnapshot.actions[0].fees;
 
       records.push({
         date,
@@ -65,11 +70,11 @@ export default class Download {
         argonsMinted,
         qtyOfArgonsToBurn,
         costOfArgonsToBurn,
-        cashChange: cashChange || 0,
-        totalCashUnlocked: totalCashUnlocked || lastVaultAction.totalCashUnlocked,
+        cashChange: cashChange ?? 0,
+        totalCashUnlocked: totalCashUnlocked ?? lastVaultAction.totalCashUnlocked,
         totalAccruedValue,
-        vaulterReturn: (totalAccruedValue - startingPrice) / startingPrice,
-        hodlerReturn: (price - startingPrice) / startingPrice,
+        vaulterReturn: (totalAccruedValue - startingValue) / startingValue,
+        hodlerReturn: (price * bitcoinCount - hodlerExpenses - startingValue) / startingValue,
       });
 
       lastVaultAction = currentVaultAction ? currentVaultAction : lastVaultAction;

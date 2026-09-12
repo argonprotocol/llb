@@ -1,4 +1,4 @@
-import IBitcoinPriceRecord from '../interfaces/IBitcoinPriceRecord';
+import { IBitcoinPriceRecord } from '../interfaces/IBitcoinPriceRecord';
 import Vault, { IAction } from './Vault';
 
 export default class VaultSnapshot {
@@ -6,6 +6,7 @@ export default class VaultSnapshot {
 
   public actions: IAction[] = [];
   public prices: IBitcoinPriceRecord[] = [];
+  public bitcoinCount: number = 0;
 
   public startingPrice: number = 0;
   public endingPrice: number = 0;
@@ -27,6 +28,7 @@ export default class VaultSnapshot {
 
     this.actions = vault.actions;
     this.prices = vault.prices;
+    this.bitcoinCount = vault.bitcoinCount;
 
     this.startingPrice = vault.startingPrice;
     this.endingPrice = vault.endingPrice;

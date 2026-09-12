@@ -17,8 +17,9 @@
       </h3>
 
       <p>
-        Drag the left slider to set your bitcoin's starting vault date. The right slider sets your exit date. Select any time range you desire, from yesterday the 
-        11th of November all the way back to Bitcoin's first public trading date of October 1, 2010.
+        Drag the left slider to set your bitcoin's starting vault date. The right slider sets your exit date. Select any
+        time range you desire, from December 31, 2025, all the way back to Bitcoin's first public trading date of
+        October 1, 2010.
       </p>
 
       <div class="flex flex-row justify-end px-3 mt-3 pb-3 border-t border-slate-300/60 space-x-3">

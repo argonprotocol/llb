@@ -54,6 +54,20 @@ export function addCommasToInt(str: string) {
   return int.replace(/(\d)(?=(\d{3})+$)/g, '$1,');
 }
 
+export function addCommasToFloat(str: string, decimals = 2) {
+  const arr = str.split('.');
+  const int = arr[0];
+  const dec = arr.length > 1 ? `.${arr[1]}` : '';
+  return (
+    // tslint:disable-next-line:prefer-template
+    int.replace(/(\d)(?=(\d{3})+$)/g, '$1,') +
+    '.' +
+    parseFloat(dec)
+      .toFixed(decimals)
+      .split('.')[1]
+  );
+}
+
 function countDecimals(num: number | string) {
   // Convert the number to a string
   const numberStr = typeof num === 'number' ? num.toString() : num;
@@ -75,20 +89,6 @@ export function formatPrice(price: number, decimals?: number) {
   } else  {
     return price.toFixed(decimals ?? 2);
   }
-}
-
-export function addCommasToFloat(str: string, decimals = 2) {
-  const arr = str.split('.');
-  const int = arr[0];
-  const dec = arr.length > 1 ? `.${arr[1]}` : '';
-  return (
-    // tslint:disable-next-line:prefer-template
-    int.replace(/(\d)(?=(\d{3})+$)/g, '$1,') +
-    '.' +
-    parseFloat(dec)
-      .toFixed(decimals)
-      .split('.')[1]
-  );
 }
 
 export function currency(num: string | number, decimals = 2) {

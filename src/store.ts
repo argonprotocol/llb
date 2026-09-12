@@ -1,7 +1,7 @@
 import * as Vue from 'vue';
 import { defineStore } from 'pinia'
-import BtcFees from './lib/BtcFees';
-import BtcPrices from './lib/BtcPrices';
+import BitcoinFees from './lib/BitcoinFees';
+import BitcoinPrices from './lib/BitcoinPrices';
 import { IShort } from './lib/Vault';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -17,8 +17,8 @@ if (config.shorts) {
 
 export const useBasicStore = defineStore('help', () => {
   const isLoaded: Vue.Ref<boolean> = Vue.ref(false);
-  const btcPrices = new BtcPrices();
-  const btcFees = new BtcFees();
+  const bitcoinPrices = new BitcoinPrices();
+  const bitcoinFees = new BitcoinFees();
 
   const tourStep: Vue.Ref<number> = Vue.ref(config.tourStep || 0);
   const completedWelcome: Vue.Ref<boolean> = Vue.ref(config.completedWelcome || false);
@@ -26,7 +26,17 @@ export const useBasicStore = defineStore('help', () => {
   const bitcoinCount = Vue.ref(config.bitcoinCount || 1);
   const ratchetPct = Vue.ref(config.ratchetPct || 10);
 
-  const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: config.sliderIndexes?.left || 3_698, right: config.sliderIndexes?.right || 4_282 });
+  function restoredSliderIndex(side: 'left' | 'right', fallback: number): number {
+    const savedIndex = config.sliderIndexes?.[side];
+    if (Number.isInteger(savedIndex) && savedIndex >= 0 && savedIndex < bitcoinPrices.prices.length) {
+      return savedIndex;
+    }
+    return bitcoinPrices.indexByDate[config.sliderDates?.[side]] ?? fallback;
+  }
+
+  const leftIndex = Math.min(restoredSliderIndex('left', 3_698), bitcoinPrices.prices.length - 2);
+  const rightIndex = Math.max(leftIndex + 1, restoredSliderIndex('right', 4_282));
+  const sliderIndexes: Vue.Ref<{ left: number, right: number }> = Vue.ref({ left: leftIndex, right: rightIndex });
   const sliderDates: Vue.Ref<{ left: string, right: string }> = Vue.ref({ left: config.sliderDates?.left || '2010-08-17', right: config.sliderDates?.right || '2024-08-26' });
 
   const vaultSnapshot = Vue.ref<VaultSnapshot>(new VaultSnapshot());
@@ -93,8 +103,8 @@ export const useBasicStore = defineStore('help', () => {
 
   return { 
     isLoaded, 
-    btcPrices, 
-    btcFees, 
+    bitcoinPrices, 
+    bitcoinFees, 
     vaultSnapshot,
 
     ratchetPct,

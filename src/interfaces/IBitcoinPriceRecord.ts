@@ -1,5 +1,5 @@
 // Define an interface for the bitcoin price record
-export default interface IBitcoinPriceRecord {
+export interface IBitcoinPriceRecord {
   date: string;
   price: number;
 }

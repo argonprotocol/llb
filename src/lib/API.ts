@@ -1,4 +1,4 @@
-export type IStageName = 'bitcoinPrices' | 'bitcoinFeesPerTransaction';
+export type IStageName = 'bitcoinPrices' | 'bitcoinFees';
 
 export default class API {
   static async fetchSimulationData(stage: IStageName) {

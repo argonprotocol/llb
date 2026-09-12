@@ -14,11 +14,11 @@
             <div VerticalLine class="absolute left-1/2 top-7 bottom-0 w-[1px]"></div>
           </div>
         </Chart>
-        <NibSlider ref="nibSliderLeftRef" @pointerdown="startDrag('left', $event)" @pointermove="onDrag('left', $event)" @pointerup="stopDrag('left', $event)" position="left" :pos="sliderLeftPosX" :isActive="nibsActive.left || highlightStart" />
-        <NibSlider ref="nibSliderRightRef" @pointerdown="startDrag('right', $event)" @pointermove="onDrag('right', $event)" @pointerup="stopDrag('right', $event)" position="right" :pos="sliderRightPosX" :isActive="nibsActive.right || highlightEnd" />
+        <NibSlider ref="nibSliderLeftRef" @pointerdown="startDrag('left', $event)" @pointermove="onDrag('left', $event)" @pointerup="stopDrag('left', $event)" position="left" :pos="sliderLeftPosX" :top="sliderLeftTop" :isActive="nibsActive.left || highlightStart" />
+        <NibSlider ref="nibSliderRightRef" @pointerdown="startDrag('right', $event)" @pointermove="onDrag('right', $event)" @pointerup="stopDrag('right', $event)" position="right" :pos="sliderRightPosX" :top="sliderRightTop" :isActive="nibsActive.right || highlightEnd" />
         
-        <ChartMarker direction="left" v-if="tourStep !== 1 || hasDraggedSlider" :config="chartMarkerLeft" />
-        <ChartMarker direction="right" :config="chartMarkerRight" />
+        <ChartMarker direction="left" v-if="tourStep !== 1 || hasDraggedSlider" :config="chartMarkerLeft" :verticalOffset="tooltipOffsets.left" @bounds="leftTooltipBounds = $event" />
+        <ChartMarker direction="right" :config="chartMarkerRight" :verticalOffset="tooltipOffsets.right" @bounds="rightTooltipBounds = $event" />
       </div>
     
       <div class="absolute left-20 top-[15%] flex flex-col min-w-[30%] xl:min-w-[35%] pb-20">
@@ -128,7 +128,7 @@ import { useBasicStore } from '../store';
 import Chart from '../components/Chart.vue';
 import ChartBg from '../components/ChartBg.vue';
 import { storeToRefs } from 'pinia';
-import { IAction, IShort } from '../lib/Vault';
+import { IShort } from '../lib/Vault';
 import emitter from '../emitters/basic';
 import NibSlider from '../components/NibSlider.vue';
 import ChartMarker from '../overlays/ChartMarker.vue';
@@ -152,15 +152,35 @@ import '@angelblanco/v-calendar/style.css';
 dayjs.extend(utc);
 
 const basicStore = useBasicStore();
-const { btcPrices, btcFees } = basicStore;
+const { bitcoinPrices, bitcoinFees } = basicStore;
 const { sliderIndexes, sliderDates, ratchetPct, bitcoinCount, vaultSnapshot, tourStep, shorts } = storeToRefs(basicStore);
 
 const chartRef = Vue.ref<typeof Chart | null>(null);
 const chartMarkerLeft = Vue.ref({ left: 0, top: 0, opacity: 0, item: {} as any });
 const chartMarkerRight = Vue.ref({ left: 0, top: 0, opacity: 0, item: {} as any });
 
+type TooltipBounds = { left: number; right: number; top: number; bottom: number; viewportHeight: number };
+const leftTooltipBounds = Vue.ref<TooltipBounds | null>(null);
+const rightTooltipBounds = Vue.ref<TooltipBounds | null>(null);
+const tooltipOffsets = Vue.computed(() => {
+  const left = leftTooltipBounds.value;
+  const right = rightTooltipBounds.value;
+  const none = { left: 0, right: 0 };
+  if (!left || !right || (tourStep.value === 1 && !hasDraggedSlider.value)) return none;
+  const gap = 8;
+  if (left.right <= right.left || right.right <= left.left ||
+      left.bottom + gap <= right.top || right.bottom + gap <= left.top) return none;
+
+  const separation = left.bottom + gap - right.top;
+  const roomAbove = Math.max(0, left.top - gap);
+  const roomBelow = Math.max(0, right.viewportHeight - gap - right.bottom);
+  const up = Math.min(roomAbove, Math.max(separation / 2, separation - roomBelow));
+  return { left: -up, right: separation - up };
+});
+
+
 const isDragging = Vue.ref(false);
-const componentElement = Vue.ref(null);
+const componentElement = Vue.ref<HTMLElement | null>(null);
 
 let dragMeta: any = {};
 let lastNibSliderPosition = { left: 0, top: 0, right: 0, bottom: 0 } as DOMRect;
@@ -182,7 +202,11 @@ const nibSliderLeftRef = Vue.ref<HTMLElement | null>(null);
 const nibSliderRightRef = Vue.ref<HTMLElement | null>(null);
 
 const sliderLeftPosX = Vue.ref(0);
+const sliderLeftTop = Vue.ref(0);
 const sliderRightPosX = Vue.ref(0);
+const sliderRightTop = Vue.ref(0);
+const highestPriceIndex = bitcoinPrices.prices.reduce((highest, row, index, prices) =>
+  row.date <= '2025-12-31' && row.price > prices[highest].price ? index : highest, 0);
 
 const shortToHighlight = Vue.ref({
   isActive: false,
@@ -429,15 +453,19 @@ function updateNibActiveAfterDrag() {
 
 function updateLeftSlider(index: number, wasManuallyMoved: boolean = false) {
   hasDraggedSlider.value = hasDraggedSlider.value || wasManuallyMoved;
-  if (index > sliderIndexes.value.right - 1) return;
-
-  index = Math.max(index || 0, 0);
+  if (!Number.isFinite(index)) return;
+  const rightDate = chartRef.value?.getItem(sliderIndexes.value.right).date;
+  const latestDate = dayjs.utc(rightDate).subtract(6, 'month').format('YYYY-MM-DD');
+  const maxIndex = chartRef.value?.getItemIndexFromDate(latestDate);
+  index = Math.max(0, Math.min(index, maxIndex));
   basicStore.setConfig({ sliderIndexes: { left: index, right: sliderIndexes.value.right } });
 
   const startingItem = chartRef.value?.getItem(index);
   const pointPosition = chartRef.value?.getPointPosition(index);
   
   sliderLeftPosX.value = pointPosition.x;
+  const highestPointY = chartRef.value?.getPointPosition(highestPriceIndex).y;
+  sliderLeftTop.value = Math.max(highestPointY, pointPosition.y - 50);
   basicStore.setConfig({ sliderDates: { left: startingItem.date, right: sliderDates.value.right } });
   
   chartMarkerLeft.value.left = pointPosition.x;
@@ -448,16 +476,23 @@ function updateLeftSlider(index: number, wasManuallyMoved: boolean = false) {
 
 function updateRightSlider(index: number, wasManuallyMoved: boolean = false) {
   hasDraggedSlider.value = hasDraggedSlider.value || wasManuallyMoved;
-  if (index < sliderIndexes.value.left + 1) return;
+  if (!Number.isFinite(index)) return;
 
-  const maxIndex = chartRef.value?.getItemCount() - 1;
-  index = Math.min(index || maxIndex, maxIndex);
+  // Match the chart's displayed end date, rather than the viewport padding.
+  const maxIndex = chartRef.value?.getItemIndexFromDate('2025-12-31');
+  const leftDate = chartRef.value?.getItem(sliderIndexes.value.left).date;
+  const earliestDate = dayjs.utc(leftDate).add(6, 'month').format('YYYY-MM-DD');
+  const minIndex = chartRef.value?.getItemIndexFromDate(earliestDate);
+  if (minIndex < 0 || minIndex > maxIndex) return;
+  index = Math.max(minIndex, Math.min(index, maxIndex));
   basicStore.setConfig({ sliderIndexes: { right: index, left: sliderIndexes.value.left } });
   
   const endingItem = chartRef.value?.getItem(index);
   const pointPosition = chartRef.value?.getPointPosition(index);
 
   sliderRightPosX.value = pointPosition.x;
+  const highestPointY = chartRef.value?.getPointPosition(highestPriceIndex).y;
+  sliderRightTop.value = Math.max(highestPointY, pointPosition.y - 50);
   basicStore.setConfig({ sliderDates: { left: sliderDates.value.left, right: endingItem.date } });
 
   chartMarkerRight.value.left = pointPosition.x;
@@ -482,11 +517,11 @@ function runVault() {
 function loadChartData() {
   const items: any[] = [];
 
-  for (const [index, priceRecord] of btcPrices.all.entries()) {
+  for (const [index, priceRecord] of bitcoinPrices.all.entries()) {
     const item = {
       ...priceRecord,
       showPointOnChart: index === 0,
-      fee: btcFees.getByDate(priceRecord.date),
+      fee: bitcoinFees.getByDate(priceRecord.date),
       previous: items[index - 1],
       next: undefined,
     };
@@ -618,13 +653,21 @@ Vue.watch(ratchetPct, (newVal: number) => {
   runVault();
 });
 
+function deselectBarsOnOutsidePress(event: PointerEvent) {
+  if (isDragging.value) return;
+  if (event.target instanceof Element && event.target.closest('[SelectedLine]')) return;
+  nibsActive.value = { left: false, right: false };
+}
+
 Vue.onMounted(() => {
+  document.addEventListener('pointerdown', deselectBarsOnOutsidePress, true);
   window.addEventListener('keydown', handleKeyPress);
   loadChartData();
   runVault();
 });
 
 Vue.onUnmounted(() => {
+  document.removeEventListener('pointerdown', deselectBarsOnOutsidePress, true);
   window.removeEventListener('keydown', handleKeyPress);
 });
 </script>
