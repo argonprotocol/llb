@@ -1,5 +1,5 @@
 <template>
-  <div ref="markerRef" :class="[tourStep === 1 ? 'z-[2000]' : 'z-[2]']" class="absolute isolate w-0 pointer-events-none" :style="`left: ${leftPx}px; top: ${config.top}px; opacity: ${config.opacity}`">
+  <div ref="markerRef" :class="[tourStep === 1 ? 'z-[2000]' : 'z-[5]']" class="absolute isolate w-0 pointer-events-none" :style="`left: ${leftPx}px; top: ${config.top}px; opacity: ${config.opacity}`">
     
     <svg Arrow width="24" height="12" viewBox="0 0 24 12" class="absolute top-0 overflow-visible -translate-y-1/2 -translate-x-1/2 z-[2]">
       <path :d="arrowPath" fill="white" stroke="rgb(148 163 184 / 0.6)" stroke-width="1" />

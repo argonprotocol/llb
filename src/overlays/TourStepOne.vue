@@ -1,7 +1,7 @@
 <template>
-  <div class="absolute z-[2001] w-full max-w-[30rem] -translate-x-full" :style="{ left: left, bottom: '3.4%' }">
+  <div class="tour-card fixed z-[2001] w-[28rem] left-6 bottom-6 max-h-[calc(100dvh-100px)] overflow-y-auto">
     
-    <div Arrow ref="arrowRef" class="absolute left-full top-1/2 translate-y-[50%] -translate-x-2 rotate-90 z-1">
+    <div Arrow ref="arrowRef" class="hidden">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 0L24 12H0L12 0Z" fill="white"/>
       </svg>
@@ -17,9 +17,9 @@
       </h3>
 
       <p>
-        Drag the left slider to set your bitcoin's starting vault date. The right slider sets your exit date. Select any
-        time range you desire, from December 31, 2025, all the way back to Bitcoin's first public trading date of
-        October 1, 2010.
+        Drag the left slider to set your starting date and the right slider to set your exit date, or use the date controls.
+        The supported history runs from {{ dayjs.utc(basicStore.dateDomain.first).format('MMMM D, YYYY') }} through {{ dayjs.utc(basicStore.dateDomain.last).format('MMMM D, YYYY') }}. Choose at least six calendar months.
+        Click a range bar or its bottom tab to select it. Focus a handle to adjust it with the arrow keys.
       </p>
 
       <div class="flex flex-row justify-end px-3 mt-3 pb-3 border-t border-slate-300/60 space-x-3">
@@ -34,7 +34,6 @@
 </template>
 
 <script setup lang="ts">
-import * as Vue from 'vue';
 import dayjs from 'dayjs';
 import dayjsUtc from 'dayjs/plugin/utc';
 import { storeToRefs } from 'pinia';
@@ -44,13 +43,11 @@ import { useBasicStore } from '../store';
 dayjs.extend(dayjsUtc);
 
 const basicStore = useBasicStore();
-const { tourStep, completedWelcome } = storeToRefs(basicStore);
+const { completedWelcome } = storeToRefs(basicStore);
 
-const props = defineProps<{
+defineProps<{
   pos: { left: number, top: number, right: number, bottom: number };
 }>();
-
-const left = Vue.computed(() => (props.pos.left + 15) + 'px');
 
 const emit = defineEmits(['nextStep']);
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute z-[2000]" :style="{ left, top, width }">
+  <div class="tour-card fixed z-[2000] overflow-y-auto" :style="{ left, top, width, maxHeight: `calc(100dvh - ${top} - 16px)` }">
     
     <div Arrow ref="arrowRef" class="absolute left-1/2 top-[1px] translate-x-[50%] -translate-y-full z-1">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -18,7 +18,7 @@
 
       <div class="flex flex-col space-y-3">
         <p>This is your results scoreboard. It allows you to test multilple trading scenarios across every possible timeframe over the last fifteen years, and it does so using the same algorithms that are found in Argon's actual codebase.  It's like vaulting your bitcoin on the Argon mainnet without waiting fifteen years to see what happens.</p>
-        <p>Note: move your mouse over any stat on the scoreboard to explore more detail.</p>
+        <p>Tap or click a statistic, or focus it and press Enter, to explore its explanation. Results update when the calculation finishes.</p>
       </div>
 
       <div class="flex flex-row justify-center px-3 mt-3 pb-3 border-t border-slate-300/60 space-x-3">

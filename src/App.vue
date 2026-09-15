@@ -1,17 +1,9 @@
 <template>
-  <div v-if="isTooNarrow" class="flex flex-col h-screen w-screen select-none justify-center px-4">
-    <div class="text-center text-slate-400/80 text-xl pt-4 font-bold mb-10 px-16" style="text-shadow: 1px 1px 0 rgba(255,255,255,0.8);">
-      This tool must be viewed on a larger screen. Please use a desktop or laptop.
-    </div>
-    <wistia-player media-id="1k1jdinjxd"></wistia-player>
-  </div>
-  <div v-else class="flex flex-row min-h-screen w-screen select-none">
-    <Tour v-if="isLoaded && tourStep > 0" />
-    <div class="flex flex-col h-screen grow min-w-[60rem]">
-      <Header />
-      <Main v-if="isLoaded" class="grow" />
-      <Loading v-else class="grow" />
-    </div>
+  <div class="app-shell">
+    <Header />
+    <Main v-if="isLoaded" />
+    <Loading v-else class="min-h-[20rem]" />
+    <Tour v-if="isLoaded && tourStep > 0 && desktop" />
     <WelcomeOverlay />
     <InsightOverlay />
     <TooltipOverlay />
@@ -20,6 +12,9 @@
     <FaqOverlay />
     <DetailsOfLiquidLocking />
     <ConfirmConfigReset />
+    <ConfirmShortRemoval />
+    <AddShort />
+    <ScenarioEditorDialog />
   </div>
 </template>
 
@@ -40,41 +35,18 @@ import DetailsOfLiquidLocking from './overlays/DetailsOfLiquidLocking.vue';
 import ConfirmConfigReset from './overlays/ConfirmConfigReset.vue';
 import Tour from './panels/Tour.vue';
 import emitter from './emitters/basic';
+import { useDesktopLayout } from './lib/ResponsiveLayout';
+import ConfirmShortRemoval from './overlays/ConfirmShortRemoval.vue';
+import AddShort from './overlays/AddShort.vue';
+import ScenarioEditorDialog from './components/ScenarioEditorDialog.vue';
 
 const basicStore = useBasicStore();
 const { isLoaded, tourStep, completedWelcome } = storeToRefs(basicStore);
 
-const windowWidth = Vue.ref(window.innerWidth);
-
-if (!completedWelcome.value && tourStep.value === 0) {
-  Vue.watch(isLoaded, (newVal) => {
-    if (newVal) {
-      emitter.emit('openWelcomeOverlay');
-    }
-  });
-}
-
-let scriptIsInjected = false;
-
-const isTooNarrow = Vue.computed(() => {
-  const isLessThan1224 = windowWidth.value < 1224;
-
-  if (isLessThan1224 && !scriptIsInjected) {
-    const script = document.createElement('script');
-    script.src = 'https://fast.wistia.com/player.js';
-    script.async = true;
-    document.head.appendChild(script);
-    scriptIsInjected = true;
-  }
-
-  return isLessThan1224;
+const desktop = useDesktopLayout();
+Vue.onMounted(async () => {
+  await basicStore.loadData();
+  await Vue.nextTick();
+  if (!completedWelcome.value && tourStep.value === 0) emitter.emit('openWelcomeOverlay');
 });
-
-Vue.onMounted(() => {
-  window.addEventListener('resize', () => {
-    windowWidth.value = window.innerWidth;
-  });
-});
-
-basicStore.loadData();
 </script>

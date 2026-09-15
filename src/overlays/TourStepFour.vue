@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute z-[2000] w-[30rem] -translate-x-full" :style="{ left, top }">
+  <div class="tour-card fixed z-[2000] w-[30rem] -translate-x-full overflow-y-auto" :style="{ left, top, maxHeight: `calc(100dvh - ${top} - 16px)` }">
     
     <div Arrow ref="arrowRef" class="absolute left-full top-[1px] -translate-x-[160%] -translate-y-full z-1">
       <svg class="relative z-10" width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -17,7 +17,7 @@ body {
 
 body.isGrabbing {
   cursor: grabbing !important;
-  div, svg {
+  div, svg, button {
     cursor: grabbing !important;
   }
 }
@@ -27,4 +27,51 @@ body.isResizing {
   div, svg {
     cursor: col-resize !important;
   }
+}
+html, body, #app { min-width: 0; min-height: 100%; }
+body { color: #334155; }
+.app-shell { min-height: 100vh; min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom, 0px); }
+button, a, input, summary { -webkit-tap-highlight-color: transparent; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+:where(button, a, input, summary, [tabindex]):focus-visible { outline: 2px solid #a21caf; outline-offset: 3px; }
+:where(section, aside, div, nav)[tabindex="-1"]:focus { outline-offset: 4px; }
+.touch-button { display: inline-flex; justify-content: center; align-items: center; min-width: 44px; min-height: 44px; border-radius: .35rem; }
+.primary-button, .secondary-button, .editor-trigger { min-height: 44px; border-radius: .4rem; padding: .5rem .8rem; font-size: .9rem; line-height: 1.4; }
+.primary-button { color: white; background: #a21caf; border: 1px solid #86198f; }
+.primary-button:hover { background: #86198f; }
+.secondary-button { background: #f8faff; border: 1px solid #aab3c0; color: #86198f; }
+.secondary-button:hover { background: white; }
+.editor-trigger { border: 1px solid #94a3b8; background: #f8faff; color: #86198f; font-variant-numeric: tabular-nums; text-align: left; }
+.field-input { width: 100%; min-width: 0; min-height: 44px; border-radius: .4rem; border: 1px solid #94a3b8; font-size: 16px; padding: .6rem .75rem; color: #334155; }
+.sheet-panel { max-height: calc(100dvh - 1.5rem); display: flex; flex-direction: column; }
+.sheet-content { overflow-y: auto; min-height: 0; }
+.app-dialog .vc-container { max-width: 100%; width: 100%; border: none; }
+.app-dialog .vc-pane-container { width: 100%; }
+.app-dialog .vc-day-content { min-height: 40px; width: 100%; max-width: 44px; }
+.app-dialog .vc-header { min-height: 48px; }
+.app-dialog .vc-arrow { min-width: 44px; min-height: 44px; font-size: 1.5rem; }
+body:has([aria-modal="true"]) .Tour.Component { visibility: hidden; }
+/* Constrain small viewports without overriding each dialog's desktop width cap. */
+.legacy-dialog .min-h-full:has(> [data-dialog-panel]) { align-items: flex-start; padding-top: max(1rem, env(safe-area-inset-top, 0px)); }
+.legacy-dialog [data-dialog-panel] { width: min(100%, calc(100vw - 2rem)); }
+.legacy-dialog [data-dialog-panel] img { max-width: 100%; height: auto; }
+.legacy-dialog [data-dialog-panel] button { min-height: 44px; }
+.legacy-dialog [data-dialog-panel] [CloseIcon] { min-width: 44px; min-height: 44px; top: .5rem; right: .5rem; }
+.legacy-dialog [data-dialog-panel] [id^="headlessui-dialog-title"] { white-space: normal; overflow-wrap: anywhere; padding-right: 2.5rem; }
+@media (max-width: 767px) {
+  .legacy-dialog [data-dialog-panel] { padding: 1rem; margin: .5rem 0; }
+  .legacy-dialog [data-dialog-panel] .text-4xl, .legacy-dialog [data-dialog-panel] .text-3xl { font-size: 1.5rem; line-height: 1.25; }
+  .legacy-dialog [data-dialog-panel] .mx-20 { margin-left: 0; margin-right: 0; }
+  .legacy-dialog [data-dialog-panel] .flex-row-reverse { flex-wrap: wrap; gap: .5rem; }
+}
+@screen desktop {
+  .legacy-dialog { color: black; }
+  .legacy-dialog .min-h-full:has(> [data-dialog-panel]) { align-items: center; padding-top: 0; }
+  .legacy-dialog [data-dialog-panel] button { min-height: initial; }
+  .legacy-dialog [data-dialog-panel] [CloseIcon] { min-width: initial; min-height: initial; top: -.5rem; right: -.5rem; }
+  .legacy-dialog [data-dialog-panel] [id^="headlessui-dialog-title"] { padding-right: initial; }
+  .legacy-dialog.WelcomeOverlay [data-dialog-panel] [id^="headlessui-dialog-title"] { padding-right: .75rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }

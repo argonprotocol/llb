@@ -1,111 +1,93 @@
 <template>
-  <TransitionRoot as="template" :show="isOpen">
-    <Dialog class="relative z-[2000]" @close="isOpen = false">
-      <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-      </TransitionChild>
-
-      <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-          <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-            <DialogPanel class="relative transform rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <DialogTitle as="h3" class="text-lg font-semibold text-gray-900">Add New Price Drop</DialogTitle>
-                <div class="mt-2">
-                  <p class="text-sm text-gray-500">Choose a date and price for the Argon to drop below its target. The simulation will then react to the drop using the Argon protocol, which allows your vaulted bitcoin to cover the short.</p>
-                  <div class="flex flex-col gap-2 mt-2">
-                    <div>
-                      <DatePicker v-model="date" timezone="UTC" :min-date="minDate" :max-date="maxDate" :disabled-dates="disabledDates" is-required>
-                        <template #default="{ togglePopover }">
-                          <label for="drop" class="mb-1 block text-sm/6 font-medium text-gray-900">Date of Drop</label>
-                          <div class="relative rounded-md shadow-sm">
-                            <div @click="togglePopover" :class="date ? 'text-gray-900' : 'text-gray-400'" class="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6">
-                              {{ date ? dayjs.utc(date).format('MMMM D, YYYY') : 'Select Date' }}
-                            </div>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                              <CalendarIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
-                            </div>
-                          </div>
-                        </template>
-                      </DatePicker>
-                    </div>
-
-                    <div>
-                      <label for="price" class="mb-1 block text-sm/6 font-medium text-gray-900">Lowest Price</label>
-                      <div class="relative rounded-md shadow-sm">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                          <span class="text-gray-500 sm:text-sm">$</span>
-                        </div>
-                        <input type="text" v-model="lowestPrice" name="price" id="price" class="block w-full rounded-md border-0 py-1.5 pl-7 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm/6" placeholder="0.001" />
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                          <span class="text-gray-500 sm:text-sm" id="price-currency">USD</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+  <component :is="desktop ? DesktopDialog : MobileSheet" :open="isOpen" :title="desktop ? 'Add New Price Drop' : 'Add a price drop'" @close="isOpen = false">
+    <form @submit.prevent="insert" :class="{ 'desktop-price-drop': desktop }">
+      <div v-if="desktop" class="ml-4">
+        <h3 class="text-lg font-semibold text-gray-900">Add New Price Drop</h3>
+        <p class="text-sm text-gray-500 mt-2">Choose a date and price for the Argon to drop below its target. The simulation will then react to the drop using the Argon protocol, which allows your vaulted bitcoin to cover the short.</p>
+        <div class="flex flex-col gap-2 mt-2">
+          <DatePicker :model-value="date ? dayjs.utc(date).toDate() : null" :initial-page="calendarPage || initialPage" @did-move="rememberPage"
+            @update:model-value="selectDate" timezone="UTC" :min-date="minDate" :max-date="maxDate" :disabled-dates="disabledDates" is-required color="blue">
+            <template #default="{ togglePopover }">
+              <label for="drop-date-trigger" class="mb-1 block text-sm leading-6 font-medium">Date of Drop</label>
+              <div class="relative">
+                <button id="drop-date-trigger" type="button" class="date-input" :class="{ empty: !date }" @click="togglePopover">{{ date ? dayjs.utc(date).format('MMMM D, YYYY') : 'Select Date' }}</button>
+                <CalendarIcon class="pointer-events-none absolute right-3 top-2 w-5 h-5 text-gray-400" />
               </div>
-              <p v-if="validationError" role="alert" class="mt-3 text-sm text-red-600">{{ validationError }}</p>
-              <div class="mt-5 sm:mt-7 sm:flex sm:flex-row-reverse">
-                <button type="button" class="inline-flex w-full justify-center rounded-md bg-fuchsia-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-fuchsia-500 sm:ml-3 sm:w-auto" @click="insert">Insert</button>
-                <button type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto" @click="isOpen = false" ref="cancelButtonRef">Cancel</button>
-              </div>
-            </DialogPanel>
-          </TransitionChild>
+            </template>
+          </DatePicker>
+          <div>
+            <label for="drop-price" class="mb-1 block text-sm leading-6 font-medium">Lowest Price</label>
+            <div class="relative">
+              <span class="price-prefix">$</span>
+              <input id="drop-price" v-model="lowestPrice" type="text" inputmode="decimal" autocomplete="off" class="price-input" />
+              <span class="price-unit">USD</span>
+            </div>
+          </div>
         </div>
       </div>
-    </Dialog>
-  </TransitionRoot>
+      <template v-else>
+      <p class="text-sm text-slate-500 mb-4">Choose a date inside your selected range and a USD price below the ${{ store.usdTargetForArgon }} Argon target.</p>
+      <label class="block text-sm font-medium mb-2" for="drop-date-trigger">Date of drop</label>
+      <button id="drop-date-trigger" type="button" class="secondary-button w-full" :aria-expanded="calendarOpen" @click="calendarOpen = !calendarOpen">{{ date ? dayjs.utc(date).format('MMM D, YYYY') : 'Choose date' }}</button>
+      <DatePicker v-if="calendarOpen" :model-value="date ? dayjs.utc(date).toDate() : null" :initial-page="calendarPage || initialPage" @did-move="rememberPage" @update:model-value="selectDate" timezone="UTC" :min-date="minDate" :max-date="maxDate" :disabled-dates="disabledDates" expanded is-required color="purple">
+        <template #header-prev-button><span aria-hidden="true">‹</span><span class="sr-only">Previous month</span></template>
+        <template #header-next-button><span aria-hidden="true">›</span><span class="sr-only">Next month</span></template>
+        <template #nav-prev-button><span aria-hidden="true">‹</span><span class="sr-only">Previous period</span></template>
+        <template #nav-next-button><span aria-hidden="true">›</span><span class="sr-only">Next period</span></template>
+      </DatePicker>
+      <label class="block text-sm font-medium mt-4 mb-2" for="drop-price">Lowest price (USD per ARGN)</label>
+      <input id="drop-price" v-model="lowestPrice" type="text" inputmode="decimal" autocomplete="off" class="field-input" />
+
+      </template>
+      <p v-if="validationError" role="alert" class="mt-3 text-sm text-red-700">{{ validationError }}</p>
+      <div class="drop-actions flex flex-wrap justify-end gap-2 mt-5"><button type="button" class="secondary-button" @click="isOpen = false">Cancel</button><button type="submit" class="primary-button">Insert</button></div>
+    </form>
+  </component>
 </template>
-
-<script setup>
-import * as Vue from 'vue';
+<script setup lang="ts">
+import { computed, ref } from 'vue';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
 import { DatePicker } from '@angelblanco/v-calendar';
-import emitter from '../emitters/basic';
-import { useBasicStore } from '../store';
+import MobileSheet from '../components/MobileSheet.vue';
+import DesktopDialog from '../components/DesktopDialog.vue';
 import { CalendarIcon } from '@heroicons/vue/24/outline';
-
-dayjs.extend(utc);
-
-const basicStore = useBasicStore();
-const validationError = Vue.ref('');
-const isOpen = Vue.ref(false);
-const date = Vue.ref();
-const lowestPrice = Vue.ref(0.001);
-
-const minDate = Vue.ref();
-const maxDate = Vue.ref();
-const disabledDates = Vue.ref([]);
-
-function insert() {
-  const price = Number(lowestPrice.value);
-  if (!Number.isFinite(price) || price <= 0 || price >= basicStore.usdTargetForArgon) {
-    validationError.value = `Enter a USD price greater than zero and below the $${basicStore.usdTargetForArgon} target.`;
-    return;
-  }
-  if (!date.value) {
-    validationError.value = 'Choose a date for the price drop.';
-    return;
-  }
-  emitter.emit('addShort', { 
-    date: dayjs.utc(date.value), 
-    lowestPrice: Number(lowestPrice.value),
-  });
-  isOpen.value = false;
-}
-
-emitter.on('openAddShort', ({ sliderDates, shorts }) => {
-  validationError.value = '';
-  isOpen.value = true;
-  minDate.value = sliderDates[0];
-  maxDate.value = sliderDates[sliderDates.length - 1];
-  disabledDates.value = shorts.map((s) => {
-    return s.date === 'EXIT' ? maxDate.value : s.date.toDate();
-  });
+import { useDesktopLayout } from '../lib/ResponsiveLayout';
+import { hideInsight } from '../lib/InsightUtils';
+import { useBasicStore } from '../store';
+import { useEvent } from '../lib/EventUtils';
+import { dateOnly } from '../lib/ScenarioConfig';
+const store = useBasicStore();
+const desktop = useDesktopLayout();
+const calendarPage = ref<{ year: number; month: number }>();
+function rememberPage(pages: { year: number; month: number }[]) { if (pages[0]) calendarPage.value = { year: pages[0].year, month: pages[0].month }; }
+const isOpen = ref(false);
+const calendarOpen = ref(false);
+const date = ref('');
+const lowestPrice = ref('0.001');
+const validationError = ref('');
+const minDate = computed(() => dayjs.utc(store.sliderDates.left).add(1, 'day').format('YYYY-MM-DD'));
+const maxDate = computed(() => dayjs.utc(store.sliderDates.right).subtract(1, 'day').format('YYYY-MM-DD'));
+const initialPage = computed(() => ({ year: dayjs.utc(minDate.value).year(), month: dayjs.utc(minDate.value).month() + 1 }));
+const disabledDates = computed(() => store.shorts.filter(short => short.date !== 'EXIT').map(short => dayjs.utc(short.date).toDate()));
+useEvent('openAddShort', () => {
+  hideInsight(true); calendarPage.value = undefined;
+  date.value = ''; lowestPrice.value = '0.001'; validationError.value = ''; calendarOpen.value = false; isOpen.value = true;
 });
-
+function selectDate(value: unknown) { date.value = dateOnly(value); calendarOpen.value = false; }
+function insert() {
+  try { store.addPriceDrop(date.value, lowestPrice.value); isOpen.value = false; }
+  catch (error) { validationError.value = (error as Error).message; }
+}
 </script>
+<style scoped>
+.desktop-price-drop .date-input, .desktop-price-drop .price-input { display: block; width: 100%; min-height: 0; height: 36px; padding: 6px 40px 6px 12px; border: 0; border-radius: 6px; box-shadow: inset 0 0 0 1px #d1d5db; font-size: 14px; line-height: 24px; text-align: left; color: #111827; }
+.desktop-price-drop .price-input { padding-left: 28px; padding-right: 48px; }
+.desktop-price-drop .date-input.empty { color: #9ca3af; }
+.price-prefix, .price-unit { position: absolute; top: 8px; color: #6b7280; font-size: 14px; line-height: 20px; pointer-events: none; }
+.price-prefix { left: 12px; } .price-unit { right: 12px; }
+.desktop-price-drop .drop-actions { margin-top: 28px; gap: 12px; }
+.desktop-price-drop .drop-actions button { min-height: 0; padding: 8px 12px; border: 0; font-size: 14px; line-height: 20px; font-weight: 600; border-radius: 6px; }
+.desktop-price-drop .secondary-button { background: white; color: #111827; box-shadow: inset 0 0 0 1px #d1d5db, 0 1px 2px #0000000d; }
+.desktop-price-drop .primary-button { background: #c026d3; color: white; }
+.desktop-price-drop .primary-button:hover { background: #d946ef; }
+</style>

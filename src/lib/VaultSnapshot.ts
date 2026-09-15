@@ -1,8 +1,11 @@
 import { IBitcoinPriceRecord } from '../interfaces/IBitcoinPriceRecord';
 import Vault, { IAction } from './Vault';
+import type { VaultRequest } from './VaultQueue';
 
 export default class VaultSnapshot {
   public isLoaded = false;
+  public requestId = 0;
+  public inputs?: VaultRequest;
 
   public actions: IAction[] = [];
   public prices: IBitcoinPriceRecord[] = [];
@@ -49,5 +52,6 @@ export default class VaultSnapshot {
 
     this.ratchetCount = vault.actions.filter((a: IAction) => a.type === 'ratchet-up' || a.type === 'ratchet-down').length;
     this.shortCount = vault.shorts.length;
+    this.isLoaded = true;
   }
 }

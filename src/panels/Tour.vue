@@ -1,5 +1,6 @@
 <template>
   <div class="Tour Component" :style="stepVars">
+    <button v-if="tourStep > 1" type="button" class="secondary-button fixed left-4 top-16 z-[3000]" @click="cancelTour">Cancel tour</button>
     <div StepBackgroundCircle class="z-[2000]" v-if="tourStep === 4">
       <div StepBorderCircle></div>
     </div>
@@ -12,7 +13,7 @@
     <TourStepTwo @previousStep="previousStep(1)" @nextStep="nextStep(3)" :pos="tourPos" v-if="tourStep === 2" />
     <TourStepThree @previousStep="previousStep(2)" @nextStep="nextStep(4)" :pos="tourPos" v-if="tourStep === 3" />
     <TourStepFour @previousStep="previousStep(3)" @nextStep="nextStep(5)" :pos="tourPos" v-if="tourStep === 4" />
-    <MoreInfoMenu class="MoreInfoMenu absolute z-[3000]" v-if="tourStep === 4" />
+    <DesktopMoreInfo class="MoreInfoMenu absolute z-[3000]" v-if="tourStep === 4" />
   </div>
 </template>
 
@@ -24,13 +25,18 @@ import TourStepOne from '../overlays/TourStepOne.vue';
 import TourStepTwo from '../overlays/TourStepTwo.vue';
 import TourStepThree from '../overlays/TourStepThree.vue';
 import TourStepFour from '../overlays/TourStepFour.vue';
-import MoreInfoMenu from '../components/MoreInfoMenu.vue';
+import DesktopMoreInfo from '../layouts/DesktopMoreInfo.vue';
+import emitter from '../emitters/basic';
 
 const basicStore = useBasicStore();
 const { tourStep } = storeToRefs(basicStore);
+function cancelTour() {
+  basicStore.setConfig({ tourStep: 0 });
+  if (!basicStore.completedWelcome) emitter.emit('openWelcomeOverlay');
+}
 
 const stepVars = Vue.ref({});
-const tourPos = Vue.ref({});
+const tourPos = Vue.ref({ left: 0, top: 0, right: 0, bottom: 0 });
 
 function updateStepVars() {
   let rect = { left: 0, top: 0, right: 0, bottom: 0 };
@@ -98,7 +104,7 @@ Vue.onBeforeUnmount(() => {
 <style lang="scss">
 .Tour.Component {
   .MoreInfoMenu {
-    position: absolute;
+    position: fixed;
     top: calc(var(--topPos) + 10px);
     left: calc(var(--leftPos) + 5px);
     z-index: 2001;

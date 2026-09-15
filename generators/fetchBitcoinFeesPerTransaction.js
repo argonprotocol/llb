@@ -5,6 +5,7 @@ const FEE_URL = 'https://api.blockchain.info/charts/transaction-fees';
 const TX_COUNT_URL = 'https://api.blockchain.info/charts/n-transactions';
 const START_DATE = '2010-07-18';
 const TODAY = new Date().toISOString().split('T')[0];
+const YESTERDAY = new Date(Date.parse(TODAY) - 86_400_000).toISOString().split('T')[0];
 
 async function fetchData(url) {
   const response = await axios.get(url, {
@@ -38,6 +39,13 @@ async function fetchBitcoinFeeData() {
       data.push({ date, feeInBitcoins: Number((item.y / txCount).toFixed(8)) });
     }
     if (!data.length) throw new Error('No completed daily Bitcoin fees returned');
+    data.sort((a, b) => a.date.localeCompare(b.date));
+    if (new Set(data.map(row => row.date)).size !== data.length) {
+      throw new Error('Duplicate Bitcoin fee date');
+    }
+    if (data.at(-1).date !== YESTERDAY) {
+      throw new Error(`Bitcoin fees end at ${data.at(-1).date}; waiting for ${YESTERDAY}`);
+    }
 
     const filePath = new URL('../src/data/bitcoinFees.json', import.meta.url);
     writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');

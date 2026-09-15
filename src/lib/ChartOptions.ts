@@ -1,22 +1,40 @@
 import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
 import { Interaction, TooltipModel } from 'chart.js';
 import { getRelativePosition } from 'chart.js/helpers';
+
+dayjs.extend(utc);
+
+// Clip each calendar year to the displayed data, including partial endpoint years.
+export function getYearIntervals(min: number, max: number) {
+  const years: { label: string; start: number; end: number }[] = [];
+  let year = dayjs.utc(min).startOf('year');
+  while (year.valueOf() <= max) {
+    const next = year.add(1, 'year');
+    years.push({ label: year.format('YYYY'), start: Math.max(min, year.valueOf()), end: Math.min(max, next.valueOf()) });
+    year = next;
+  }
+  return years;
+}
 
 (Interaction.modes as any).myCustomMode = function(chart: any, e: any) {
   const position = getRelativePosition(e, chart);
 
   const items: any[] = [];
+  let nearest = Infinity;
   Interaction.evaluateInteractionItems(chart, 'x', position, (element, datasetIndex, index) => {
     const xDistanceFromPoint = Math.abs(position.x - element.x);
     const yDistanceFromPoint = Math.abs(position.y - element.y);
-    if (yDistanceFromPoint < 30 && xDistanceFromPoint < 30) {
+    if (yDistanceFromPoint < 44 && xDistanceFromPoint < 30 && xDistanceFromPoint < nearest) {
+      nearest = xDistanceFromPoint;
+      items.length = 0;
       items.push({element, datasetIndex, index});
     }
   });
   return items;
 };
 
-export function createChartOptions(chartPoints: any[], pointRadius: number[], onTooltipFn: any) {
+export function createChartOptions(chartPoints: any[], pointRadius: number[], onTooltipFn: any, dateRange: { first: string; last: string }) {
   return {
     type: 'line',
     data: {
@@ -71,8 +89,8 @@ export function createChartOptions(chartPoints: any[], pointRadius: number[], on
           time: {
             unit: 'day'
           },
-          min: dayjs('2010-08-17').valueOf(),
-          max: dayjs('2025-12-31').valueOf(),
+          min: dayjs.utc(dateRange.first).valueOf(),
+          max: dayjs.utc(dateRange.last).valueOf(),
         },
         y: {
           display: false,

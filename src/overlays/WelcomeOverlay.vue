@@ -1,6 +1,6 @@
 <template>
   <TransitionRoot as="template" :show="isOpen">
-    <Dialog class="WelcomeOverlay Component relative z-[2000]">
+    <Dialog class="legacy-dialog WelcomeOverlay Component relative z-[2000]" @close="close">
       <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
       </TransitionChild>
@@ -8,7 +8,7 @@
       <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-            <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 pt-5 my-10 text-left shadow-xl transition-all w-full max-w-3xl">
+            <DialogPanel data-dialog-panel class="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 pt-5 my-10 text-left shadow-xl transition-all w-full max-w-3xl">
               <div class="grow">
                 <DialogTitle as="h3" class="whitespace-nowrap px-3">
                   <div class="text-lg font-bold text-slate-900/30">Argon Simulation Engine</div>
@@ -36,7 +36,8 @@
                     <div class="LoadingPulse absolute inset-0 flex items-center justify-center text-slate-500/60 text-3xl uppercase">Loading Video...</div>
                     <wistia-player media-id="1k1jdinjxd"></wistia-player>
                   </div>
-                  <div v-else VideoLink @click="expandVideo" class="border border-dashed border-gray-400 rounded-md py-4 text-center group cursor-pointer">
+
+                  <button type="button" v-else VideoLink @click="expandVideo" class="!mt-5 !mb-6 block w-full border border-dashed border-gray-400 rounded-md py-4 text-center group cursor-pointer">
                     <div class="text-lg text-fuchsia-600 group-hover:text-fuchsia-500 cursor-pointer pl-1 font-bold">
                       <PlayOutlined OutlineIcon class="w-6 h-6 inline-block relative top-[-1px]" />
                       <PlaySolid SolidIcon class="w-6 h-6 inline-block relative top-[-1px]" />
@@ -46,24 +47,28 @@
                       A short video from our founder on how Liquid Locking works and why<br /> 
                       the returns are so much stronger than hodling.
                     </p>
-                  </div>
+                  </button>
 
-                  <p>
-                    We recommend first-timers <a @click="startTour">Take the Tour</a>. You can also 
-                    <a @click="openWhitepapersOverlay">read our Whitepapers</a>, explore 
-                    <a @click="openFaqOverlay">Frequently Asked Questions</a>, or 
-                    <a @click="openDetailsOfLiquidLocking">learn more about Liquid Locking</a>.
+                  <p class="welcome-links">
+                    <span v-if="desktop">
+                      We recommend first-timers <button type="button" class="text-fuchsia-700 underline" @click="startTour">Take the Tour</button>.
+                      You can also
+                    </span>
+                    <span v-else>You can </span>
+                    <button type="button" class="text-fuchsia-700 underline" @click="openWhitepapersOverlay">read our Whitepapers</button>, explore
+                    <button type="button" class="text-fuchsia-700 underline" @click="openFaqOverlay">Frequently Asked Questions</button>, or
+                    <button type="button" class="text-fuchsia-700 underline" @click="openDetailsOfLiquidLocking">learn more about Liquid Locking</button>.
                   </p>
 
                 </div>
               </div>
               <div class="flex flex-row-reverse justify-start px-3">
-                <button Main ref="nextButtonRef" type="button" class="rounded-md border px-8 py-2 mt-4 ml-4 text-sm font-semibold text-white border-fuchsia-800 bg-fuchsia-600 hover:bg-fuchsia-500 hover:border-fuchsia-900 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-fuchsia-500" @click="startTour">
-                  Take the Tour
-                  <ChevronDoubleRightIcon class="w-4 h-4 inline-block relative top-[-1px]" />
+                <button Main type="button" class="rounded-md border px-8 py-2 mt-4 ml-4 text-sm font-semibold text-white border-fuchsia-800 bg-fuchsia-600 hover:bg-fuchsia-500 hover:border-fuchsia-900 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-fuchsia-500" @click="desktop ? startTour() : close()">
+                  {{ desktop ? 'Take the Tour' : 'Explore the simulator' }}
+                  <ChevronDoubleRightIcon v-if="desktop" class="w-4 h-4 inline-block relative top-[-1px]" />
                 </button>
-                <button ref="nextButtonRef" type="button" class="rounded-md bg-[#E6EAF3] border border-[#969AA5] px-8 py-2 mt-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-200 hover:border-slate-600 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-fuchsia-500" @click="close">
-                  Close Overlay
+                <button v-if="desktop" ref="nextButtonRef" type="button" class="rounded-md bg-[#E6EAF3] border border-[#969AA5] px-8 py-2 mt-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-200 hover:border-slate-600 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-fuchsia-500" @click="close">
+                  Skip Tour and Explore
                 </button>
               </div>
             </DialogPanel>
@@ -82,8 +87,11 @@ import PlayOutlined from '../assets/play-outlined.svg';
 import PlaySolid from '../assets/play-solid.svg';
 import { useBasicStore } from '../store';
 import emitter from '../emitters/basic';
+import { useEvent } from '../lib/EventUtils';
+import { useDesktopLayout } from '../lib/ResponsiveLayout';
 
 const basicStore = useBasicStore();
+const desktop = useDesktopLayout();
 
 const isOpen = Vue.ref(false);
 const showVideo = Vue.ref(false);
@@ -119,7 +127,7 @@ function openDetailsOfLiquidLocking() {
   emitter.emit('openDetailsOfLiquidLocking');
 }
 
-emitter.on('openWelcomeOverlay', () => {
+useEvent('openWelcomeOverlay', () => {
   isOpen.value = true;
 });
 
@@ -132,6 +140,12 @@ Vue.onMounted(() => {
 
 <style lang="scss">
 .WelcomeOverlay.Component {
+  .welcome-links button {
+    min-height: 0;
+    padding: 0;
+    line-height: inherit;
+  }
+
   a {
     @apply text-fuchsia-600 hover:text-fuchsia-500 underline decoration-dashed;
     cursor: pointer;

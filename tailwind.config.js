@@ -1,3 +1,4 @@
+import layout from './src/lib/ResponsiveLayout.json';
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'selector',
@@ -6,11 +7,10 @@ export default {
     './src/**/*.{vue,js,ts,jsx,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: { screens: { desktop: `${layout.desktop}px` } },
   },
   plugins: [
     require('@vueform/slider/tailwind'),
     require("@tailwindcss/forms"),
   ],
 }
-

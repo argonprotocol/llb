@@ -4,6 +4,7 @@ import axios from 'axios';
 const BASE_URL = 'https://api.blockchain.info/charts/market-price';
 const START_DATE = '2010-07-18';
 const TODAY = new Date().toISOString().split('T')[0];
+const YESTERDAY = new Date(Date.parse(TODAY) - 86_400_000).toISOString().split('T')[0];
 
 async function fetchBitcoinData() {
   try {
@@ -27,6 +28,15 @@ async function fetchBitcoinData() {
       data.push({ millis: item.x, date, price: item.y });
     }
     if (!data.length) throw new Error('No completed daily Bitcoin prices returned');
+    data.sort((a, b) => a.date.localeCompare(b.date));
+    for (let i = 1; i < data.length; i++) {
+      if (Date.parse(data[i].date) - Date.parse(data[i - 1].date) !== 86_400_000) {
+        throw new Error(`Missing or duplicate Bitcoin price date near ${data[i].date}`);
+      }
+    }
+    if (data.at(-1).date !== YESTERDAY) {
+      throw new Error(`Bitcoin prices end at ${data.at(-1).date}; waiting for ${YESTERDAY}`);
+    }
 
     const filePath = new URL('../src/data/bitcoinPrices.json', import.meta.url);
     writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');

@@ -1,23 +1,24 @@
 <template>
   <TransitionRoot as="template" :show="isOpen">
-    <Dialog class="VideoOverlay Component relative z-[2000]" @close="closeOverlay()">
+    <Dialog class="legacy-dialog VideoOverlay Component relative z-[2000]" @close="closeOverlay()">
       <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
-        <div @click="close" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+        <div @click="closeOverlay" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
       </TransitionChild>
 
       <div class="fixed inset-0 z-50 w-screen overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             
-            <DialogPanel class="relative transform rounded-lg bg-white px-3 pb-3 pt-3 text-left shadow-xl transition-all w-full max-w-5xl">
+            <DialogPanel data-dialog-panel class="relative transform rounded-lg bg-white px-3 pb-3 pt-3 text-left shadow-xl transition-all w-full max-w-5xl">
+              <DialogTitle class="sr-only">Liquid Locking 101 video</DialogTitle>
               <div v-if="!completedWelcome" class="pb-3 border-b border-slate-300">
-                <div @click="closeOverlay()" class="inline-block cursor-pointer text-gray-400 hover:text-fuchsia-600">
+                <button type="button" @click="closeOverlay()" class="inline-block cursor-pointer text-gray-400 hover:text-fuchsia-600">
                   <ArrowLeftIcon class="inline-block w-4 h-4 relative top-[-1.5px]" /> Back to Welcome
-                </div>
+                </button>
               </div>
-              <div v-if="completedWelcome" @click="closeOverlay()" CloseIcon class="absolute -top-2 -right-2 cursor-pointer flex flex-row items-center space-x-1 border border-slate-400/70 rounded-full p-2 bg-white hover:bg-slate-300 z-1">
+              <button type="button" aria-label="Close dialog" v-if="completedWelcome" @click="closeOverlay()" class="video-close touch-button ml-auto mb-2 flex border border-slate-400/70 rounded-full bg-white hover:bg-slate-300">
                 <XMarkIcon class="inline-block w-4 h-4" />
-              </div>
+              </button>
 
               <div class="grow relative">
                 <div class="LoadingPulse absolute inset-0 flex items-center justify-center text-slate-500/60 text-3xl uppercase">Loading Video...</div>
@@ -36,9 +37,10 @@
 <script setup lang="ts">
 import * as Vue from 'vue'
 import { storeToRefs } from 'pinia';
-import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import emitter from '../emitters/basic';
+import { useEvent } from '../lib/EventUtils';
 import { useBasicStore } from '../store';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
@@ -54,13 +56,15 @@ function closeOverlay() {
   }
 }
 
-emitter.on('openVideoOverlay', () => {
+useEvent('openVideoOverlay', () => {
   isOpen.value = true;
 });
 
 // Load Wistia script dynamically
 Vue.onMounted(() => {
+  if (document.querySelector('script[data-liquid-video]')) return;
   const script = document.createElement('script');
+  script.dataset.liquidVideo = 'true';
   script.src = 'https://fast.wistia.com/player.js';
   script.async = true;
   document.head.appendChild(script);
@@ -70,6 +74,9 @@ Vue.onMounted(() => {
 
 <style lang="scss">
 .VideoOverlay.Component {
+  @screen desktop {
+    .video-close { position: absolute; top: -.5rem; right: -.5rem; min-width: 0; min-height: 0; padding: 8px; margin: 0; z-index: 1; }
+  }
   a {
     @apply text-fuchsia-600 hover:text-fuchsia-500 underline decoration-dashed;
     cursor: pointer;

@@ -9,8 +9,8 @@
     display: block;
     position: absolute;
     bottom: 9px;
-    left: 9px;
-    width: calc(100% - 18px);
+    left: 0;
+    width: 100%;
     height: calc(100% - 11px);
     background: #F9FAFD;
     border: 1px solid #b9bcc4;
@@ -26,6 +26,12 @@
     width: 100%;
     height: 50%;
     background: linear-gradient(to bottom, rgb(230, 234, 243), rgba(230, 234, 243, 0));
+  }
+}
+@screen desktop {
+  [ChartBg]:before {
+    left: 9px;
+    width: calc(100% - 18px);
   }
 }
 </style>

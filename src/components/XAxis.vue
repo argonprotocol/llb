@@ -1,42 +1,19 @@
 <template>
-  <div class="X-AXIS COMPONENT text-sm text-slate-400 border-t border-slate-300 mx-1 select-none">
-    <ul Dates class="flex flex-row justify-around pt-0.5 text-center whitespace-nowrap h-7 mb-1">
-      <li v-if="unitType === 'year'" class="border-slate-300 pt-1" :style="`min-width: ${unitWidth * 1.2}%`">&nbsp; 2010 &nbsp;</li>
-      <li v-for="length in lengths" :key="length" class="border-l border-slate-300 pt-1" :style="`width: ${lengthWidth}%`">{{ length }}</li>
-    </ul>
+  <div class="chart-axis relative h-8 border-t border-slate-300 text-xs text-slate-500">
+    <div class="desktop:hidden"><span v-for="tick in ticks" :key="tick.label" class="absolute top-1 -translate-x-1/2" :style="{ left: `clamp(1.25rem, ${tick.x}px, calc(100% - 1.25rem))` }">{{ tick.label }}</span></div>
+    <ul class="desktop-years"><li v-for="year in years" :key="year.label" :style="{ left: year.x + 'px', width: year.width + 'px' }"><span>{{ year.label }}</span></li></ul>
   </div>
 </template>
-
 <script setup lang="ts">
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-
-dayjs.extend(utc);
-
-const emit = defineEmits(['phaseenter', 'phaseleave']);
-
-type IUnitType = 'year' | 'decade';
-
-const endingYear = Number('2025') + 1
-const years = Array.from({ length: endingYear - 2011 }, (_, index) => 2011 + index);
-
-let unitType: IUnitType = 'year';
-let units = 3 + (years.length * 4)
-
-let lengths = [...years];
-
-const unitWidth = 100 / units
-const lengthWidth = unitType === 'year' ? unitWidth * 4 : unitWidth;
+defineProps<{ ticks: { label: string; x: number }[]; years: { label: string; x: number; width: number }[] }>();
 </script>
-
-<style lang="scss">
-.X-AXIS.COMPONENT {
-  li::selection      { 
-    color: rgb(148 163 184);
-    background: white;
-  }
-  ul[Dates] li:first-child {
-    border-left: none;
-  }
+<style scoped>
+.desktop-years { display: none; }
+@screen desktop {
+  .chart-axis { height: 33px; color: #94a3b8; font-size: 14px; line-height: 20px; user-select: none; }
+  .desktop-years { display: block; position: relative; height: 28px; margin-bottom: 4px; text-align: center; white-space: nowrap; }
+  .desktop-years li { position: absolute; top: 2px; height: 24px; border-left: 1px solid #cbd5e1; }
+  .desktop-years li span { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); }
+  .desktop-years li:first-child { border-left: 0; }
 }
 </style>
