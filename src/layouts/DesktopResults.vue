@@ -43,12 +43,12 @@ const desktopStats = computed(() => ['ratchets', 'shorts', 'cashUnlocked', 'vaul
 .result-stat:hover { background: white; }
 .results-summary { container-type: normal; color: black; }
 .results-caption { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; height: 56px; padding: 0 .75rem; font-size: 1rem; white-space: nowrap; text-transform: uppercase; }
-.results-caption::before { content: ''; position: absolute; inset: auto -1rem -1rem; height: 4rem; background: linear-gradient(to bottom, #e6eaf3 30%, rgba(248,250,255,0)); }
+.results-caption::before { content: ''; position: absolute; inset: auto -1rem -1rem; height: 4rem; background: linear-gradient(to bottom, var(--sam-background) 30%, rgba(var(--sam-background-rgb), 0)); }
 .caption-dates { position: relative; top: 4px; }
 .results-caption::after { content: ''; position: absolute; bottom: 0; left: 8px; right: 8px; height: 1px; background: linear-gradient(to right, #94a3b833 calc(80% - 8px), transparent calc(80% - 8px), transparent calc(80% + 8px), #94a3b833 calc(80% + 8px)); }
 .result-metrics { display: flex; justify-content: space-between; gap: 4px; }
 .metrics-main { display: flex; position: relative; min-width: 80%; padding: 4px 0; }
-.metrics-main::before, .hodlerReturns::before { content: ''; position: absolute; inset: -48px 0 0; z-index: -1; background: #f8faff; border: 1px solid #1e293b33; border-radius: 4px; box-shadow: 0 1px 3px #0003, 0 1px 2px #0002; }
+.metrics-main::before, .hodlerReturns::before { content: ''; position: absolute; inset: -48px 0 0; z-index: -1; background: var(--sam-surface); border: 1px solid #1e293b33; border-radius: 4px; box-shadow: 0 1px 3px #0003, 0 1px 2px #0002; }
 .result-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: transparent; border: 0; border-radius: 0; padding: 8px 4px; white-space: nowrap; }
 .result-stat strong { font-size: 20px; line-height: 28px; }
 .result-stat .metric-label { color: #64748bb3; font-size: 16px; line-height: 24px; text-transform: capitalize; }
@@ -58,7 +58,7 @@ const desktopStats = computed(() => ['ratchets', 'shorts', 'cashUnlocked', 'vaul
 .vaulterReturns { order: 4; min-width: 30%; border-left: 1px solid #47556933; }
 .hodlerReturns { min-width: 20%; margin: 4px 0; padding: 8px 0; }
 .hodlerReturns::before { top: -52px; bottom: -4px; }
-.result-stat .metric-operator { display: block; position: absolute; left: -1px; top: 8px; transform: translateX(-50%); background: #f8faff; color: black; font-size: 20px; line-height: 28px; font-weight: 700; pointer-events: none; }
+.result-stat .metric-operator { display: block; position: absolute; left: -1px; top: 8px; transform: translateX(-50%); background: var(--sam-surface); color: black; font-size: 20px; line-height: 28px; font-weight: 700; pointer-events: none; }
 .hodlerReturns .metric-operator { top: 12px; left: -2px; border: 1px solid #94a3b866; border-radius: 4px; padding: 0 8px; font-size: 16px; line-height: 24px; z-index: 1; }
 :deep(.result-status) { position: relative; min-height: 0; }
 </style>

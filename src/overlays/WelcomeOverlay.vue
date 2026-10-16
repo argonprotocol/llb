@@ -11,7 +11,7 @@
             <DialogPanel data-dialog-panel class="relative transform overflow-hidden rounded-lg bg-white px-6 pb-4 pt-5 my-10 text-left shadow-xl transition-all w-full max-w-3xl">
               <div class="grow">
                 <DialogTitle as="h3" class="whitespace-nowrap px-3">
-                  <div class="text-lg font-bold text-slate-900/30">Argon Simulation Engine</div>
+                  <div class="text-lg font-bold text-slate-900/30">Argon System Modeling</div>
                   <div class="text-4xl font-bold text-gray-900">Liquid Locking for Bitcoin</div>
                 </DialogTitle>
 
